@@ -31,10 +31,11 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.label7 = new System.Windows.Forms.Label();
+            this.textBoxPName = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.textBoxOutPath = new System.Windows.Forms.TextBox();
-            this.buttonClean = new System.Windows.Forms.Button();
             this.buttonTest = new System.Windows.Forms.Button();
             this.checkBoxCodebase = new System.Windows.Forms.CheckBox();
             this.checkBoxRegistry = new System.Windows.Forms.CheckBox();
@@ -73,8 +74,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.richTextBox = new System.Windows.Forms.RichTextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.textBoxPName = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -99,7 +98,6 @@
             this.splitContainer1.Panel1.Controls.Add(this.button1);
             this.splitContainer1.Panel1.Controls.Add(this.label1);
             this.splitContainer1.Panel1.Controls.Add(this.textBoxOutPath);
-            this.splitContainer1.Panel1.Controls.Add(this.buttonClean);
             this.splitContainer1.Panel1.Controls.Add(this.buttonTest);
             this.splitContainer1.Panel1.Controls.Add(this.checkBoxCodebase);
             this.splitContainer1.Panel1.Controls.Add(this.checkBoxRegistry);
@@ -115,6 +113,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.BackColor = System.Drawing.SystemColors.Info;
             this.splitContainer1.Panel2.Controls.Add(this.labelCount);
             this.splitContainer1.Panel2.Controls.Add(this.lbIntegrityLevel);
             this.splitContainer1.Panel2.Controls.Add(this.label4);
@@ -126,8 +125,30 @@
             this.splitContainer1.Panel2.Controls.Add(this.label5);
             this.splitContainer1.Panel2.Controls.Add(this.richTextBox);
             this.splitContainer1.Size = new System.Drawing.Size(904, 445);
-            this.splitContainer1.SplitterDistance = 228;
+            this.splitContainer1.SplitterDistance = 226;
             this.splitContainer1.TabIndex = 0;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(17, 47);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(126, 20);
+            this.label7.TabIndex = 21;
+            this.label7.Text = "Project name:";
+            // 
+            // textBoxPName
+            // 
+            this.textBoxPName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxPName.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBoxPName.Location = new System.Drawing.Point(192, 44);
+            this.textBoxPName.Name = "textBoxPName";
+            this.textBoxPName.Size = new System.Drawing.Size(706, 27);
+            this.textBoxPName.TabIndex = 20;
+            this.textBoxPName.TabStop = false;
+            this.toolTip1.SetToolTip(this.textBoxPName, "Output path to save the registration/ log files");
             // 
             // button1
             // 
@@ -165,19 +186,6 @@
             this.textBoxOutPath.TabStop = false;
             this.toolTip1.SetToolTip(this.textBoxOutPath, "Output path to save the registration/ log files");
             this.textBoxOutPath.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.textBoxOutPath_MouseDoubleClick);
-            // 
-            // buttonClean
-            // 
-            this.buttonClean.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonClean.Location = new System.Drawing.Point(192, 114);
-            this.buttonClean.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.buttonClean.Name = "buttonClean";
-            this.buttonClean.Size = new System.Drawing.Size(87, 34);
-            this.buttonClean.TabIndex = 16;
-            this.buttonClean.TabStop = false;
-            this.buttonClean.Text = "Clean";
-            this.buttonClean.UseVisualStyleBackColor = true;
-            this.buttonClean.Visible = false;
             // 
             // buttonTest
             // 
@@ -244,15 +252,16 @@
             // 
             // button2
             // 
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(12, 190);
+            this.button2.BackColor = System.Drawing.Color.Red;
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button2.Location = new System.Drawing.Point(12, 181);
             this.button2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(23, 34);
+            this.button2.Size = new System.Drawing.Size(52, 34);
             this.button2.TabIndex = 0;
-            this.button2.Text = "+";
+            this.button2.Text = "Add";
             this.toolTip1.SetToolTip(this.button2, "Left click for options!");
-            this.button2.UseVisualStyleBackColor = true;
+            this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.Button2_Click);
             this.button2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Button2_MouseDown);
             // 
@@ -262,10 +271,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBoxNetLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxNetLink.FormattingEnabled = true;
-            this.comboBoxNetLink.Location = new System.Drawing.Point(285, 118);
+            this.comboBoxNetLink.Location = new System.Drawing.Point(194, 118);
             this.comboBoxNetLink.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.comboBoxNetLink.Name = "comboBoxNetLink";
-            this.comboBoxNetLink.Size = new System.Drawing.Size(614, 28);
+            this.comboBoxNetLink.Size = new System.Drawing.Size(705, 28);
             this.comboBoxNetLink.TabIndex = 5;
             this.comboBoxNetLink.TabStop = false;
             this.comboBoxNetLink.Text = "empty link";
@@ -406,11 +415,11 @@
             this.FileListcomboBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FileListcomboBox.FormattingEnabled = true;
             this.FileListcomboBox.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.FileListcomboBox.Location = new System.Drawing.Point(41, 192);
+            this.FileListcomboBox.Location = new System.Drawing.Point(66, 183);
             this.FileListcomboBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.FileListcomboBox.MaxDropDownItems = 15;
             this.FileListcomboBox.Name = "FileListcomboBox";
-            this.FileListcomboBox.Size = new System.Drawing.Size(858, 28);
+            this.FileListcomboBox.Size = new System.Drawing.Size(833, 28);
             this.FileListcomboBox.Sorted = true;
             this.FileListcomboBox.TabIndex = 8;
             this.FileListcomboBox.TabStop = false;
@@ -562,7 +571,7 @@
             this.richTextBox.Location = new System.Drawing.Point(3, 63);
             this.richTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.richTextBox.Name = "richTextBox";
-            this.richTextBox.Size = new System.Drawing.Size(897, 148);
+            this.richTextBox.Size = new System.Drawing.Size(897, 150);
             this.richTextBox.TabIndex = 1;
             this.richTextBox.Text = "";
             // 
@@ -570,28 +579,6 @@
             // 
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-            // 
-            // textBoxPName
-            // 
-            this.textBoxPName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxPName.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxPName.Location = new System.Drawing.Point(192, 44);
-            this.textBoxPName.Name = "textBoxPName";
-            this.textBoxPName.Size = new System.Drawing.Size(706, 27);
-            this.textBoxPName.TabIndex = 20;
-            this.textBoxPName.TabStop = false;
-            this.toolTip1.SetToolTip(this.textBoxPName, "Output path to save the registration/ log files");
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(17, 47);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(126, 20);
-            this.label7.TabIndex = 21;
-            this.label7.Text = "Project name:";
             // 
             // MainForm
             // 
@@ -654,7 +641,6 @@
         private System.Windows.Forms.CheckBox checkBoxInstallinGAC;
         private System.Windows.Forms.CheckBox checkBoxCodebase;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.Button buttonClean;
         private System.Windows.Forms.Button buttonTest;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem saveInstallLogToolStripMenuItem;
