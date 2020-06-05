@@ -34,9 +34,22 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>bluefrog.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BaseApp">
+      <HintPath>Dll_packages\BaseApp.dll</HintPath>
+    </Reference>
+    <Reference Include="CommandLine">
+      <HintPath>Dll_packages\CommandLine.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack">
+      <HintPath>Dll_packages\Microsoft.WindowsAPICodePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell">
+      <HintPath>Dll_packages\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.EnterpriseServices" />
@@ -63,9 +76,7 @@
     <Compile Include="werferstein.org.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="werferstein.org.Designer.cs">
-      <DependentUpon>werferstein.org.cs</DependentUpon>
-    </Compile>
+    <Compile Include="werferstein.org.Designer.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -79,9 +90,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="werferstein.org.resx">
-      <DependentUpon>werferstein.org.cs</DependentUpon>
-    </EmbeddedResource>
+    <EmbeddedResource Include="werferstein.org.resx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -96,19 +105,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\user.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\user1.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\BasApp template\C#\Base\BaseApp.csproj">
-      <Project>{ad34491b-fc26-4287-88f8-6d0b1dd27841}</Project>
-      <Name>BaseApp</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="bluefrog.ico" />
+    <Content Include="bluefrog.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Include="Resources\bluefrog.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
