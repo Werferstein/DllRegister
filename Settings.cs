@@ -16,6 +16,7 @@ namespace DllRegister
             Codebase = true;
             SaveLogging = false;
             InstallLog = string.Empty;
+            ProjectName = "Register DLL";
         }
         
         
@@ -43,5 +44,8 @@ namespace DllRegister
         public string OutputPath { get; set; }
         [XmlAttribute]
         public string RegistryBuildScript { get; set; }
+
+        [XmlAttribute]
+        public string ProjectName { get; set; }
     }
 }

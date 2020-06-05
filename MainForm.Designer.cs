@@ -73,6 +73,8 @@
             this.label5 = new System.Windows.Forms.Label();
             this.richTextBox = new System.Windows.Forms.RichTextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.textBoxPName = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -92,6 +94,8 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.label7);
+            this.splitContainer1.Panel1.Controls.Add(this.textBoxPName);
             this.splitContainer1.Panel1.Controls.Add(this.button1);
             this.splitContainer1.Panel1.Controls.Add(this.label1);
             this.splitContainer1.Panel1.Controls.Add(this.textBoxOutPath);
@@ -122,14 +126,14 @@
             this.splitContainer1.Panel2.Controls.Add(this.label5);
             this.splitContainer1.Panel2.Controls.Add(this.richTextBox);
             this.splitContainer1.Size = new System.Drawing.Size(904, 445);
-            this.splitContainer1.SplitterDistance = 194;
+            this.splitContainer1.SplitterDistance = 228;
             this.splitContainer1.TabIndex = 0;
             // 
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(875, 117);
+            this.button1.Location = new System.Drawing.Point(875, 151);
             this.button1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(25, 27);
@@ -143,7 +147,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(12, 120);
+            this.label1.Location = new System.Drawing.Point(12, 154);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(113, 20);
             this.label1.TabIndex = 18;
@@ -154,19 +158,18 @@
             this.textBoxOutPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxOutPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxOutPath.Location = new System.Drawing.Point(192, 117);
+            this.textBoxOutPath.Location = new System.Drawing.Point(192, 151);
             this.textBoxOutPath.Name = "textBoxOutPath";
             this.textBoxOutPath.Size = new System.Drawing.Size(677, 27);
             this.textBoxOutPath.TabIndex = 17;
             this.textBoxOutPath.TabStop = false;
             this.toolTip1.SetToolTip(this.textBoxOutPath, "Output path to save the registration/ log files");
-
             this.textBoxOutPath.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.textBoxOutPath_MouseDoubleClick);
             // 
             // buttonClean
             // 
             this.buttonClean.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonClean.Location = new System.Drawing.Point(192, 80);
+            this.buttonClean.Location = new System.Drawing.Point(192, 114);
             this.buttonClean.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonClean.Name = "buttonClean";
             this.buttonClean.Size = new System.Drawing.Size(87, 34);
@@ -179,7 +182,7 @@
             // buttonTest
             // 
             this.buttonTest.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonTest.Location = new System.Drawing.Point(192, 42);
+            this.buttonTest.Location = new System.Drawing.Point(192, 76);
             this.buttonTest.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonTest.Name = "buttonTest";
             this.buttonTest.Size = new System.Drawing.Size(87, 34);
@@ -194,7 +197,7 @@
             this.checkBoxCodebase.AutoSize = true;
             this.checkBoxCodebase.Checked = true;
             this.checkBoxCodebase.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxCodebase.Location = new System.Drawing.Point(665, 51);
+            this.checkBoxCodebase.Location = new System.Drawing.Point(665, 85);
             this.checkBoxCodebase.Name = "checkBoxCodebase";
             this.checkBoxCodebase.Size = new System.Drawing.Size(94, 21);
             this.checkBoxCodebase.TabIndex = 14;
@@ -208,7 +211,7 @@
             this.checkBoxRegistry.AutoSize = true;
             this.checkBoxRegistry.Checked = true;
             this.checkBoxRegistry.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxRegistry.Location = new System.Drawing.Point(501, 51);
+            this.checkBoxRegistry.Location = new System.Drawing.Point(501, 85);
             this.checkBoxRegistry.Name = "checkBoxRegistry";
             this.checkBoxRegistry.Size = new System.Drawing.Size(155, 21);
             this.checkBoxRegistry.TabIndex = 12;
@@ -220,7 +223,7 @@
             // checkBoxInstallinGAC
             // 
             this.checkBoxInstallinGAC.AutoSize = true;
-            this.checkBoxInstallinGAC.Location = new System.Drawing.Point(380, 51);
+            this.checkBoxInstallinGAC.Location = new System.Drawing.Point(380, 85);
             this.checkBoxInstallinGAC.Name = "checkBoxInstallinGAC";
             this.checkBoxInstallinGAC.Size = new System.Drawing.Size(114, 21);
             this.checkBoxInstallinGAC.TabIndex = 11;
@@ -233,7 +236,7 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(287, 49);
+            this.label6.Location = new System.Drawing.Point(287, 83);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(79, 20);
             this.label6.TabIndex = 10;
@@ -242,7 +245,7 @@
             // button2
             // 
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(12, 156);
+            this.button2.Location = new System.Drawing.Point(12, 190);
             this.button2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(23, 34);
@@ -259,14 +262,13 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBoxNetLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxNetLink.FormattingEnabled = true;
-            this.comboBoxNetLink.Location = new System.Drawing.Point(285, 84);
+            this.comboBoxNetLink.Location = new System.Drawing.Point(285, 118);
             this.comboBoxNetLink.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.comboBoxNetLink.Name = "comboBoxNetLink";
             this.comboBoxNetLink.Size = new System.Drawing.Size(614, 28);
             this.comboBoxNetLink.TabIndex = 5;
             this.comboBoxNetLink.TabStop = false;
             this.comboBoxNetLink.Text = "empty link";
-
             this.comboBoxNetLink.MouseHover += new System.EventHandler(this.ComboBoxNetLink_MouseHover);
             // 
             // labelResult
@@ -275,7 +277,7 @@
             this.labelResult.AutoSize = true;
             this.labelResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.labelResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelResult.Location = new System.Drawing.Point(764, 45);
+            this.labelResult.Location = new System.Drawing.Point(764, 79);
             this.labelResult.Name = "labelResult";
             this.labelResult.Size = new System.Drawing.Size(134, 27);
             this.labelResult.TabIndex = 4;
@@ -285,7 +287,7 @@
             // buttonUnRegister
             // 
             this.buttonUnRegister.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonUnRegister.Location = new System.Drawing.Point(12, 80);
+            this.buttonUnRegister.Location = new System.Drawing.Point(12, 114);
             this.buttonUnRegister.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonUnRegister.Name = "buttonUnRegister";
             this.buttonUnRegister.Size = new System.Drawing.Size(176, 34);
@@ -298,7 +300,7 @@
             // buttonRegister
             // 
             this.buttonRegister.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonRegister.Location = new System.Drawing.Point(12, 42);
+            this.buttonRegister.Location = new System.Drawing.Point(12, 76);
             this.buttonRegister.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonRegister.Name = "buttonRegister";
             this.buttonRegister.Size = new System.Drawing.Size(176, 34);
@@ -404,7 +406,7 @@
             this.FileListcomboBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FileListcomboBox.FormattingEnabled = true;
             this.FileListcomboBox.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.FileListcomboBox.Location = new System.Drawing.Point(41, 158);
+            this.FileListcomboBox.Location = new System.Drawing.Point(41, 192);
             this.FileListcomboBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.FileListcomboBox.MaxDropDownItems = 15;
             this.FileListcomboBox.Name = "FileListcomboBox";
@@ -560,7 +562,7 @@
             this.richTextBox.Location = new System.Drawing.Point(3, 63);
             this.richTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.richTextBox.Name = "richTextBox";
-            this.richTextBox.Size = new System.Drawing.Size(897, 182);
+            this.richTextBox.Size = new System.Drawing.Size(897, 148);
             this.richTextBox.TabIndex = 1;
             this.richTextBox.Text = "";
             // 
@@ -568,6 +570,28 @@
             // 
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            // 
+            // textBoxPName
+            // 
+            this.textBoxPName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxPName.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBoxPName.Location = new System.Drawing.Point(192, 44);
+            this.textBoxPName.Name = "textBoxPName";
+            this.textBoxPName.Size = new System.Drawing.Size(706, 27);
+            this.textBoxPName.TabIndex = 20;
+            this.textBoxPName.TabStop = false;
+            this.toolTip1.SetToolTip(this.textBoxPName, "Output path to save the registration/ log files");
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(17, 47);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(126, 20);
+            this.label7.TabIndex = 21;
+            this.label7.Text = "Project name:";
             // 
             // MainForm
             // 
@@ -642,6 +666,8 @@
         private System.Windows.Forms.ToolStripMenuItem bitToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripMenuItem openPathToolStripMenuItem;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox textBoxPName;
     }
 }
 

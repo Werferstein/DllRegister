@@ -150,6 +150,7 @@ namespace DllRegister
             checkBoxCodebase.Checked = Setting.Codebase;
             textBoxOutPath.Text = Setting.OutputPath;
             saveInstallLogToolStripMenuItem.Checked = Setting.SaveLogging;
+            textBoxPName.Text = Setting.ProjectName;
 
             blockGui = false;
         }
@@ -216,7 +217,7 @@ namespace DllRegister
             int count = 0;
             Cursor.Current = Cursors.WaitCursor;       
             foreach (var FileItem in Setting.FileItems)
-            {
+            {                
                 string tmpRegistryCode = string.Empty;
                 if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
                 if (!System.IO.File.Exists(FileItem.FullPath))
@@ -225,6 +226,8 @@ namespace DllRegister
                     error = true;
                     continue;
                 }
+                
+                if (string.IsNullOrWhiteSpace(textBoxPName.Text) && !string.IsNullOrWhiteSpace(FileItem.FullPath)) textBoxPName.Text = "Register_" + System.IO.Path.GetFileNameWithoutExtension(FileItem.FullPath);
 
                 #region Register DLL
                 if (!DllRegister.Register(textBoxOutPath.Text, FileItem.FullPath, (comboBoxNetLink.SelectedItem as NetItem).FullPath, checkBoxInstallinGAC.Checked, checkBoxRegistry.Checked, checkBoxCodebase.Checked, timeId, out tmpRegistryCode))
@@ -300,6 +303,7 @@ namespace DllRegister
             foreach (var FileItem in Setting.FileItems)
             {
                 if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
+                if (string.IsNullOrWhiteSpace(textBoxPName.Text) && !string.IsNullOrWhiteSpace(FileItem.FullPath)) textBoxPName.Text = "Register_" + System.IO.Path.GetFileNameWithoutExtension(FileItem.FullPath);
                 if (!System.IO.File.Exists(FileItem.FullPath))
                 {
                     Logger.Instance.AdddLog(LogType.Error, "File not exist! " + FileItem.FullPath);
@@ -433,7 +437,7 @@ namespace DllRegister
             Setting.Codebase = checkBoxCodebase.Checked;
             Setting.OutputPath = textBoxOutPath.Text;
             Setting.SaveLogging = saveInstallLogToolStripMenuItem.Checked;
-
+            Setting.ProjectName = textBoxPName.Text;
 
             string path = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
             string name = "dll_register_job.regdll";
@@ -538,6 +542,7 @@ namespace DllRegister
                     {
                         FileListcomboBox.Items.Add(item);
                         FileListcomboBox.SelectedItem = item;
+                        if (string.IsNullOrWhiteSpace(textBoxPName.Text) && !string.IsNullOrWhiteSpace(item.FullPath)) textBoxPName.Text = "Register_" + System.IO.Path.GetFileNameWithoutExtension(item.FullPath);
                     }
                     if (FileListcomboBox.SelectedItem is FileItem lastItem) FileListcomboBox.SelectedItem = lastItem;
                 }
