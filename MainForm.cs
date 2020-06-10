@@ -604,17 +604,8 @@ namespace DllRegister
         #region werferstein_org info
 
         private void InfoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var T = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly item in T)
-            {
-                if (item.FullName.StartsWith(Program.ProgramName))
-                {
-                    BaseApp.Base.ViewInfo(item);
-                    break;
-                }
-            }
-
+        {            
+            BaseApp.Base.ViewInfo("About "  + Program.ProgramName, Program.ProgramName, "1.0.0.1", "Simple program to register or deregister dotnet DLLs. \r\n\r\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.") ;
         }
         #endregion
 
