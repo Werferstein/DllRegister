@@ -1,16 +1,20 @@
-﻿using Microsoft.Win32;
+﻿/*
+Ingolf Hill
+werferstein.org
+/*
+  This program is free software. It comes without any warranty, to
+  the extent permitted by applicable law. You can redistribute it
+  and/or modify it under the terms of the Do What The Fuck You Want
+  To Public License, Version 2, as published by Sam Hocevar.
+*/
+
+using Microsoft.Win32;
 using SLogging;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing.Text;
-using System.EnterpriseServices;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DllRegister

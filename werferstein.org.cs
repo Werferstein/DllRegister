@@ -1,10 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
+﻿/*
+Ingolf Hill
+werferstein.org
+/*
+  This program is free software. It comes without any warranty, to
+  the extent permitted by applicable law. You can redistribute it
+  and/or modify it under the terms of the Do What The Fuck You Want
+  To Public License, Version 2, as published by Sam Hocevar.
+*/
+
+using System;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DllRegister
