@@ -74,7 +74,7 @@ namespace DllRegister
 
 
 
-            //Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
+            
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -602,42 +602,20 @@ namespace DllRegister
         }
 
         #region werferstein_org info
-        werferstein_org info = null;
+
         private void InfoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            try
+            var T = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly item in T)
             {
-                bool ok = false;
-                if (info == null || info.IsDisposed)
+                if (item.FullName.StartsWith(Program.ProgramName))
                 {
-                    var T = AppDomain.CurrentDomain.GetAssemblies();
-                    foreach (Assembly item in T)
-                    {
-                        if (item.FullName.StartsWith(Program.ProgramName))
-                        {
-                            info = new werferstein_org(item);
-                            info.Disposed += Info_Disposed;
-                            ok = true;
-                            break;
-                        }
-                    }
+                    BaseApp.Base.ViewInfo(item);
+                    break;
                 }
-
-                if (ok)
-                {
-                    info.Show();
-                    info.BringToFront();
-                    info.Focus();
-                }
-
             }
-            catch { }
-        }
 
-        private void Info_Disposed(object sender, EventArgs e)
-        {
-            info = null;
-        } 
+        }
         #endregion
 
         private void FileListcomboBox_MouseHover(object sender, EventArgs e)
@@ -858,15 +836,6 @@ namespace DllRegister
         #endregion
 
 
-        //[DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
-        //private static extern IntPtr CreateRoundRectRgn
-        //(
-        //    int nLeftRect,     // x-coordinate of upper-left corner
-        //    int nTopRect,      // y-coordinate of upper-left corner
-        //    int nRightRect,    // x-coordinate of lower-right corner
-        //    int nBottomRect,   // y-coordinate of lower-right corner
-        //    int nWidthEllipse, // width of ellipse
-        //    int nHeightEllipse // height of ellipse
-        //);
+
     }
 }
