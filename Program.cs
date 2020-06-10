@@ -51,6 +51,7 @@ namespace DllRegister
         private static void Base_OnProgStart(object sender, CommandEventArgs e)
         {
             if (mainForm != null || e.EventType != CommandEventEnum.ShowForm) return;
+
             mainForm = new MainForm();
             Application.Run(mainForm);
         }

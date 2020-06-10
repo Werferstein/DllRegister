@@ -23,10 +23,22 @@ namespace DllRegister
         private Settings Setting;
 
         
+        /*
+        Path structure:
+
+            [Project name]-* Backup DLL/TLB/reg files
+                           *-------------------------[Date and time as file name]-*Backup from last build
+
+ 
+         */
+
+
+        
         public MainForm()
         {
             InitializeComponent();
-
+            
+            splitContainer1.SplitterDistance = FileListcomboBox.Location.Y + 30;
             #region int Logger
             if (!Logger.LoggerIsOnline)
             {
@@ -41,13 +53,23 @@ namespace DllRegister
             if (Setting == null) Setting = new Settings();           
             
             Logger.Instance.AdddLog(LogType.Info, "DLL_Register " + String.Format("Version {0}", Assembly.GetExecutingAssembly().GetName().Version.ToString()) + " start!", this);
-            
-            //this.FormBorderStyle = FormBorderStyle.Fixed3D;
+            if (Environment.Is64BitProcess)
+            {
+                Logger.Instance.AdddLog(LogType.Info, "It is a 64 bit proccess!");
+            }
+
+
+
+
+
+
+
             //Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            
             blockGui = true;
 
             GetInfo();
@@ -71,8 +93,11 @@ namespace DllRegister
                     return;
                 }
             }
-
-            #region fill combo box regasm.exe
+            if (!framework.EndsWith("\\")) framework += "\\";
+            if (framework.ToLower().EndsWith("framework\\")) framework = framework.Replace("Framework\\", "");
+            if (framework.ToLower().EndsWith("framework64\\")) framework = framework.Replace("Framework64\\", "");
+            
+                    #region fill combo box regasm.exe
             comboBoxNetLink.Items.Clear();
             comboBoxNetLink.Text = string.Empty;
             Logger.Instance.AdddLog(LogType.Info, "Search in: "+ framework + " for regasm.exe!", this);
@@ -91,7 +116,7 @@ namespace DllRegister
 
                     comboBoxNetLink.Items.Add(y);
 
-                    if (Environment.Is64BitOperatingSystem && item.Contains("64"))
+                    if (Environment.Is64BitProcess && item.Contains("64"))
                     {
                         comboBoxNetLink.Text = y.Name;
                     }
@@ -105,7 +130,7 @@ namespace DllRegister
                     bool found = false;
                     foreach (var item in comboBoxNetLink.Items)
                     {
-                        if ((item as NetItem).FullPath == Setting.RegisterEXE)
+                        if ((item as NetItem).FullPath.ToLower() == Setting.RegisterEXE.ToLower())
                         {
                             comboBoxNetLink.SelectedItem = item;
                             found = true;
@@ -173,7 +198,7 @@ namespace DllRegister
                     richTextBox.ScrollToCaret();
 
                     #region save log
-                    if (!string.IsNullOrWhiteSpace(richTextBox.Text) && !string.IsNullOrWhiteSpace(DllRegister.BackupPath) && System.IO.Directory.Exists(DllRegister.BackupPath))
+                    if (!string.IsNullOrWhiteSpace(richTextBox.Text) && !string.IsNullOrWhiteSpace(DllRegister.BaseBackupPath) && System.IO.Directory.Exists(DllRegister.BaseBackupPath))
                     {
                         System.IO.File.WriteAllText(DllRegister.LogFilePath, richTextBox.Text);
                     }
@@ -197,76 +222,60 @@ namespace DllRegister
             labelResult.BackColor = this.BackColor;
             labelResult.Text = string.Empty;
             richTextBox.Text = string.Empty;
-            bool error = false;
+            
 
             Logger.Instance.AdddLog(LogType.Debug, "Start to register DLLs!", this);
 
-            if (comboBoxNetLink.SelectedItem == null || string.IsNullOrWhiteSpace((comboBoxNetLink.SelectedItem as NetItem).FullPath) || !System.IO.File.Exists((comboBoxNetLink.SelectedItem as NetItem).FullPath))
+            GetUiInput();
+
+            #region project name
+            //test project name --set to default?
+            if (string.IsNullOrWhiteSpace(Setting.ProjectName) &&
+                FileListcomboBox.SelectedItem != null &&
+                !string.IsNullOrWhiteSpace((FileListcomboBox.SelectedItem as FileItem).FullPath))
             {
-                Logger.Instance.AdddLog(LogType.Error, "Framework link ?", this);
-                return;
+                textBoxPName.Text = "Register_" + System.IO.Path.GetFileNameWithoutExtension((FileListcomboBox.SelectedItem as FileItem).FullPath);
             }
+            else
+            {
+                textBoxPName.Text = "Register_DLL";
+            }
+            Setting.ProjectName = textBoxPName.Text;
+            #endregion
+
+            #region Regasm.exe & file links ?
             if (Setting.FileItems == null || Setting.FileItems.Count == 0)
             {
                 Logger.Instance.AdddLog(LogType.Error, "Missing DLL file link ?", this);
+                MessageBox.Show("Please select dll files (add button)!", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            if (comboBoxNetLink.SelectedItem == null || string.IsNullOrWhiteSpace((comboBoxNetLink.SelectedItem as NetItem).FullPath) || !System.IO.File.Exists((comboBoxNetLink.SelectedItem as NetItem).FullPath))
+            {
+                Logger.Instance.AdddLog(LogType.Error, "Framework link ?", this);
+                MessageBox.Show("Regasm.exe link is not set?", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            #endregion
+
+            Cursor.Current = Cursors.WaitCursor;
 
 
-            string registryCode = string.Empty;
-            int count = 0;
-            Cursor.Current = Cursors.WaitCursor;       
-            foreach (var FileItem in Setting.FileItems)
-            {                
-                string tmpRegistryCode = string.Empty;
-                if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
-                if (!System.IO.File.Exists(FileItem.FullPath))
-                {
-                    Logger.Instance.AdddLog(LogType.Error, "File not exist! " + FileItem.FullPath);
-                    error = true;
-                    continue;
-                }
-                
-                if (string.IsNullOrWhiteSpace(textBoxPName.Text) && !string.IsNullOrWhiteSpace(FileItem.FullPath)) textBoxPName.Text = "Register_" + System.IO.Path.GetFileNameWithoutExtension(FileItem.FullPath);
-
-                #region Register DLL
-                if (!DllRegister.Register(textBoxOutPath.Text, FileItem.FullPath, (comboBoxNetLink.SelectedItem as NetItem).FullPath, checkBoxInstallinGAC.Checked, checkBoxRegistry.Checked, checkBoxCodebase.Checked, timeId, out tmpRegistryCode))
-                {
-                    if (!checkBoxRegistry.Checked) error = true;
-                }
-                #endregion
-
-
-                if (!string.IsNullOrWhiteSpace(tmpRegistryCode))
-                {
-                    count++;
-                    registryCode += tmpRegistryCode + Environment.NewLine + Environment.NewLine;
-                }
-
-
-
-            }//foreach (var item in Setting.FileItems)
-
-            labelResult.BorderStyle = BorderStyle.FixedSingle;
-            if (error)
+            #region Register DLL
+            if (DllRegister.Register(Setting, timeId))
+            {
+                labelResult.Text = "OK!";
+                labelResult.BackColor = Color.ForestGreen;
+            }
+            else
             {
                 labelResult.Text = "ERROR";
                 labelResult.BackColor = Color.Red;
             }
 
-            else
-            {
-                labelResult.Text = "OK!";
-                labelResult.BackColor = Color.ForestGreen;
+            #endregion
 
-                #region save all reg code
-                if (count > 1 && !string.IsNullOrWhiteSpace(registryCode) && !string.IsNullOrWhiteSpace(DllRegister.BackupPath) && System.IO.Directory.Exists(DllRegister.BackupPath))
-                {
-                    System.IO.File.WriteAllText(DllRegister.LogFilePath + "Reg", registryCode);
-                } 
-                #endregion
-            }
-
+            labelResult.BorderStyle = BorderStyle.FixedSingle;
             Cursor.Current = Cursors.Default;
         }
 
@@ -277,7 +286,7 @@ namespace DllRegister
         {
             if (!UacHelper.IsRunAsAdmin())
             {
-                MessageBox.Show("You need administrator rights to deregister a dll!", "Administrator ?", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You need administrator rights to unregister a dll!", "Administrator ?", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -285,7 +294,7 @@ namespace DllRegister
             labelResult.BackColor = this.BackColor;
             labelResult.Text = string.Empty;
             richTextBox.Text = string.Empty;
-            bool error = false;
+           
 
             Logger.Instance.AdddLog(LogType.Debug, "Start to unregister DLLs!", this);
 
@@ -299,35 +308,19 @@ namespace DllRegister
                 Logger.Instance.AdddLog(LogType.Error, "Missing DLL file link ?", this);
                 return;
             }
+
             Cursor.Current = Cursors.WaitCursor;
-            foreach (var FileItem in Setting.FileItems)
-            {
-                if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
-                if (string.IsNullOrWhiteSpace(textBoxPName.Text) && !string.IsNullOrWhiteSpace(FileItem.FullPath)) textBoxPName.Text = "Register_" + System.IO.Path.GetFileNameWithoutExtension(FileItem.FullPath);
-                if (!System.IO.File.Exists(FileItem.FullPath))
-                {
-                    Logger.Instance.AdddLog(LogType.Error, "File not exist! " + FileItem.FullPath);
-                    error = true;
-                    //continue;
-                }
-
-                if (!DllRegister.UnRegister(FileItem.FullPath, (comboBoxNetLink.SelectedItem as NetItem).FullPath, textBoxOutPath.Text, timeId, checkBoxInstallinGAC.Checked))
-                {
-                    error = true;
-                }
-            }//foreach (var item in Setting.FileItems)
-
             labelResult.BorderStyle = BorderStyle.FixedSingle;
-            if (error)
+            if (DllRegister.UnRegister(Setting, timeId))
             {
-                labelResult.Text = "ERROR";
-                labelResult.BackColor = Color.Red;
+                labelResult.Text = "OK!";
+                labelResult.BackColor = Color.ForestGreen;
             }
 
             else
             {
-                labelResult.Text = "OK!";
-                labelResult.BackColor = Color.ForestGreen;
+                labelResult.Text = "ERROR";
+                labelResult.BackColor = Color.Red;                
             }
 
             Cursor.Current = Cursors.Default;
@@ -432,12 +425,8 @@ namespace DllRegister
         #region Load & Save
         private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Setting.InstallInGAC = checkBoxInstallinGAC.Checked;
-            Setting.BuildRegistryKey = checkBoxRegistry.Checked;
-            Setting.Codebase = checkBoxCodebase.Checked;
-            Setting.OutputPath = textBoxOutPath.Text;
-            Setting.SaveLogging = saveInstallLogToolStripMenuItem.Checked;
-            Setting.ProjectName = textBoxPName.Text;
+            GetUiInput();
+
 
             string path = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
             string name = "dll_register_job.regdll";
@@ -474,6 +463,16 @@ namespace DllRegister
                 Setting.MainOptions.OptionPath = dialog.FileName;
                 Setting.Save(dialog.FileName);
             }
+        }
+
+        private void GetUiInput()
+        {
+            Setting.InstallInGAC = checkBoxInstallinGAC.Checked;
+            Setting.BuildRegistryKey = checkBoxRegistry.Checked;
+            Setting.Codebase = checkBoxCodebase.Checked;
+            Setting.OutputPath = textBoxOutPath.Text;
+            Setting.SaveLogging = saveInstallLogToolStripMenuItem.Checked;
+            Setting.ProjectName = textBoxPName.Text;
         }
 
         private void LoadToolStripMenuItem_Click(object sender, EventArgs e)
@@ -655,6 +654,11 @@ namespace DllRegister
             richTextBox.Text = string.Empty;
             bool error = false;
             Logger.Instance.AdddLog(LogType.Debug, "Start to find DLLs in registry!", this);
+            if (Environment.Is64BitProcess)
+            {
+                Logger.Instance.AdddLog(LogType.Info, "This is a 64 bit proccess!");
+            }
+
 
             if (comboBoxNetLink.SelectedItem == null || string.IsNullOrWhiteSpace((comboBoxNetLink.SelectedItem as NetItem).FullPath) || !System.IO.File.Exists((comboBoxNetLink.SelectedItem as NetItem).FullPath))
             {
@@ -830,6 +834,16 @@ namespace DllRegister
                 StartInformation.FileName = textBoxOutPath.Text;
                 Process process = Process.Start(StartInformation);
             }
+        }
+
+
+        private void textBoxPName_TextChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(textBoxPName.Text) || blockGui) return;
+            blockGui = true;            
+            System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9 -]");
+            textBoxPName.Text = rgx.Replace(textBoxPName.Text, "");
+            blockGui = false;
         }
         #endregion
 

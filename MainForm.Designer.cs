@@ -84,6 +84,7 @@
             // 
             // splitContainer1
             // 
+            this.splitContainer1.BackColor = System.Drawing.SystemColors.Control;
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
@@ -124,8 +125,9 @@
             this.splitContainer1.Panel2.Controls.Add(this.lbInAdminGroup);
             this.splitContainer1.Panel2.Controls.Add(this.label5);
             this.splitContainer1.Panel2.Controls.Add(this.richTextBox);
-            this.splitContainer1.Size = new System.Drawing.Size(904, 445);
+            this.splitContainer1.Size = new System.Drawing.Size(739, 409);
             this.splitContainer1.SplitterDistance = 226;
+            this.splitContainer1.SplitterWidth = 8;
             this.splitContainer1.TabIndex = 0;
             // 
             // label7
@@ -143,21 +145,22 @@
             this.textBoxPName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxPName.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxPName.Location = new System.Drawing.Point(192, 44);
+            this.textBoxPName.Location = new System.Drawing.Point(151, 44);
             this.textBoxPName.Name = "textBoxPName";
-            this.textBoxPName.Size = new System.Drawing.Size(706, 27);
+            this.textBoxPName.Size = new System.Drawing.Size(576, 27);
             this.textBoxPName.TabIndex = 20;
             this.textBoxPName.TabStop = false;
             this.toolTip1.SetToolTip(this.textBoxPName, "Output path to save the registration/ log files");
+            this.textBoxPName.TextChanged += new System.EventHandler(this.textBoxPName_TextChanged);
             // 
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(875, 151);
+            this.button1.Location = new System.Drawing.Point(702, 151);
             this.button1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(25, 27);
+            this.button1.Size = new System.Drawing.Size(25, 23);
             this.button1.TabIndex = 19;
             this.button1.TabStop = false;
             this.button1.Text = "...";
@@ -179,9 +182,9 @@
             this.textBoxOutPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxOutPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxOutPath.Location = new System.Drawing.Point(192, 151);
+            this.textBoxOutPath.Location = new System.Drawing.Point(151, 151);
             this.textBoxOutPath.Name = "textBoxOutPath";
-            this.textBoxOutPath.Size = new System.Drawing.Size(677, 27);
+            this.textBoxOutPath.Size = new System.Drawing.Size(545, 27);
             this.textBoxOutPath.TabIndex = 17;
             this.textBoxOutPath.TabStop = false;
             this.toolTip1.SetToolTip(this.textBoxOutPath, "Output path to save the registration/ log files");
@@ -190,10 +193,10 @@
             // buttonTest
             // 
             this.buttonTest.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonTest.Location = new System.Drawing.Point(192, 76);
+            this.buttonTest.Location = new System.Drawing.Point(151, 76);
             this.buttonTest.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonTest.Name = "buttonTest";
-            this.buttonTest.Size = new System.Drawing.Size(87, 34);
+            this.buttonTest.Size = new System.Drawing.Size(62, 34);
             this.buttonTest.TabIndex = 15;
             this.buttonTest.TabStop = false;
             this.buttonTest.Text = "Test";
@@ -205,9 +208,10 @@
             this.checkBoxCodebase.AutoSize = true;
             this.checkBoxCodebase.Checked = true;
             this.checkBoxCodebase.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxCodebase.Location = new System.Drawing.Point(665, 85);
+            this.checkBoxCodebase.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkBoxCodebase.Location = new System.Drawing.Point(516, 87);
             this.checkBoxCodebase.Name = "checkBoxCodebase";
-            this.checkBoxCodebase.Size = new System.Drawing.Size(94, 21);
+            this.checkBoxCodebase.Size = new System.Drawing.Size(102, 21);
             this.checkBoxCodebase.TabIndex = 14;
             this.checkBoxCodebase.TabStop = false;
             this.checkBoxCodebase.Text = "Codebase";
@@ -219,9 +223,10 @@
             this.checkBoxRegistry.AutoSize = true;
             this.checkBoxRegistry.Checked = true;
             this.checkBoxRegistry.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxRegistry.Location = new System.Drawing.Point(501, 85);
+            this.checkBoxRegistry.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkBoxRegistry.Location = new System.Drawing.Point(344, 87);
             this.checkBoxRegistry.Name = "checkBoxRegistry";
-            this.checkBoxRegistry.Size = new System.Drawing.Size(155, 21);
+            this.checkBoxRegistry.Size = new System.Drawing.Size(176, 21);
             this.checkBoxRegistry.TabIndex = 12;
             this.checkBoxRegistry.TabStop = false;
             this.checkBoxRegistry.Text = "Build registry key(s)";
@@ -231,9 +236,10 @@
             // checkBoxInstallinGAC
             // 
             this.checkBoxInstallinGAC.AutoSize = true;
-            this.checkBoxInstallinGAC.Location = new System.Drawing.Point(380, 85);
+            this.checkBoxInstallinGAC.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkBoxInstallinGAC.Location = new System.Drawing.Point(217, 87);
             this.checkBoxInstallinGAC.Name = "checkBoxInstallinGAC";
-            this.checkBoxInstallinGAC.Size = new System.Drawing.Size(114, 21);
+            this.checkBoxInstallinGAC.Size = new System.Drawing.Size(128, 21);
             this.checkBoxInstallinGAC.TabIndex = 11;
             this.checkBoxInstallinGAC.TabStop = false;
             this.checkBoxInstallinGAC.Text = "Install in GAC";
@@ -243,12 +249,12 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(287, 83);
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Location = new System.Drawing.Point(151, 122);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(79, 20);
+            this.label6.Size = new System.Drawing.Size(202, 24);
             this.label6.TabIndex = 10;
-            this.label6.Text = "Version:";
+            this.label6.Text = "RegAsem.exe version:";
             // 
             // button2
             // 
@@ -257,7 +263,7 @@
             this.button2.Location = new System.Drawing.Point(12, 181);
             this.button2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(52, 34);
+            this.button2.Size = new System.Drawing.Size(52, 30);
             this.button2.TabIndex = 0;
             this.button2.Text = "Add";
             this.toolTip1.SetToolTip(this.button2, "Left click for options!");
@@ -271,10 +277,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBoxNetLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxNetLink.FormattingEnabled = true;
-            this.comboBoxNetLink.Location = new System.Drawing.Point(194, 118);
+            this.comboBoxNetLink.Location = new System.Drawing.Point(313, 118);
             this.comboBoxNetLink.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.comboBoxNetLink.Name = "comboBoxNetLink";
-            this.comboBoxNetLink.Size = new System.Drawing.Size(705, 28);
+            this.comboBoxNetLink.Size = new System.Drawing.Size(414, 28);
             this.comboBoxNetLink.TabIndex = 5;
             this.comboBoxNetLink.TabStop = false;
             this.comboBoxNetLink.Text = "empty link";
@@ -286,11 +292,11 @@
             this.labelResult.AutoSize = true;
             this.labelResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.labelResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelResult.Location = new System.Drawing.Point(764, 79);
+            this.labelResult.Location = new System.Drawing.Point(616, 83);
             this.labelResult.Name = "labelResult";
-            this.labelResult.Size = new System.Drawing.Size(134, 27);
+            this.labelResult.Size = new System.Drawing.Size(110, 27);
             this.labelResult.TabIndex = 4;
-            this.labelResult.Text = "....................";
+            this.labelResult.Text = "................";
             this.labelResult.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // buttonUnRegister
@@ -299,7 +305,7 @@
             this.buttonUnRegister.Location = new System.Drawing.Point(12, 114);
             this.buttonUnRegister.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonUnRegister.Name = "buttonUnRegister";
-            this.buttonUnRegister.Size = new System.Drawing.Size(176, 34);
+            this.buttonUnRegister.Size = new System.Drawing.Size(133, 34);
             this.buttonUnRegister.TabIndex = 1;
             this.buttonUnRegister.TabStop = false;
             this.buttonUnRegister.Text = "Unregister DLL";
@@ -312,7 +318,7 @@
             this.buttonRegister.Location = new System.Drawing.Point(12, 76);
             this.buttonRegister.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.buttonRegister.Name = "buttonRegister";
-            this.buttonRegister.Size = new System.Drawing.Size(176, 34);
+            this.buttonRegister.Size = new System.Drawing.Size(133, 34);
             this.buttonRegister.TabIndex = 0;
             this.buttonRegister.TabStop = false;
             this.buttonRegister.Text = "Register DLL";
@@ -331,7 +337,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
-            this.menuStrip1.Size = new System.Drawing.Size(904, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(739, 28);
             this.menuStrip1.TabIndex = 7;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -344,33 +350,33 @@
             this.saveInstallLogToolStripMenuItem,
             this.toolStripSeparator2});
             this.systemToolStripMenuItem.Name = "systemToolStripMenuItem";
-            this.systemToolStripMenuItem.Size = new System.Drawing.Size(147, 24);
+            this.systemToolStripMenuItem.Size = new System.Drawing.Size(145, 24);
             this.systemToolStripMenuItem.Text = "Load / Save to xml";
             this.systemToolStripMenuItem.ToolTipText = "The project can be saved or loaded as an xml file";
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(192, 26);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(184, 26);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.LoadToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(192, 26);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(184, 26);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(189, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(181, 6);
             // 
             // saveInstallLogToolStripMenuItem
             // 
             this.saveInstallLogToolStripMenuItem.Name = "saveInstallLogToolStripMenuItem";
-            this.saveInstallLogToolStripMenuItem.Size = new System.Drawing.Size(192, 26);
+            this.saveInstallLogToolStripMenuItem.Size = new System.Drawing.Size(184, 26);
             this.saveInstallLogToolStripMenuItem.Text = "Save install log";
             this.saveInstallLogToolStripMenuItem.Visible = false;
             this.saveInstallLogToolStripMenuItem.Click += new System.EventHandler(this.SaveInstallLogToolStripMenuItem_Click);
@@ -378,14 +384,14 @@
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(189, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(181, 6);
             // 
             // infoToolStripMenuItem
             // 
             this.infoToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.infoToolStripMenuItem.Image = global::DllRegister.Properties.Resources.user1;
             this.infoToolStripMenuItem.Name = "infoToolStripMenuItem";
-            this.infoToolStripMenuItem.Size = new System.Drawing.Size(69, 24);
+            this.infoToolStripMenuItem.Size = new System.Drawing.Size(67, 24);
             this.infoToolStripMenuItem.Text = "Info";
             this.infoToolStripMenuItem.Click += new System.EventHandler(this.InfoToolStripMenuItem_Click);
             // 
@@ -393,7 +399,7 @@
             // 
             this.toolStripMenuItemRegedit.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.toolStripMenuItemRegedit.Name = "toolStripMenuItemRegedit";
-            this.toolStripMenuItemRegedit.Size = new System.Drawing.Size(141, 24);
+            this.toolStripMenuItemRegedit.Size = new System.Drawing.Size(139, 24);
             this.toolStripMenuItemRegedit.Text = "Open RegEdit.exe";
             this.toolStripMenuItemRegedit.Click += new System.EventHandler(this.ToolStripMenuItemRegedit_Click);
             // 
@@ -401,7 +407,7 @@
             // 
             this.bitToolStripMenuItem.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.bitToolStripMenuItem.Name = "bitToolStripMenuItem";
-            this.bitToolStripMenuItem.Size = new System.Drawing.Size(57, 24);
+            this.bitToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
             this.bitToolStripMenuItem.Text = "64bit";
             this.bitToolStripMenuItem.Click += new System.EventHandler(this.BitToolStripMenuItem_Click);
             // 
@@ -419,7 +425,7 @@
             this.FileListcomboBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.FileListcomboBox.MaxDropDownItems = 15;
             this.FileListcomboBox.Name = "FileListcomboBox";
-            this.FileListcomboBox.Size = new System.Drawing.Size(833, 28);
+            this.FileListcomboBox.Size = new System.Drawing.Size(661, 28);
             this.FileListcomboBox.Sorted = true;
             this.FileListcomboBox.TabIndex = 8;
             this.FileListcomboBox.TabStop = false;
@@ -476,7 +482,7 @@
             this.labelCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelCount.AutoSize = true;
             this.labelCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelCount.Location = new System.Drawing.Point(749, 21);
+            this.labelCount.Location = new System.Drawing.Point(655, 21);
             this.labelCount.Name = "labelCount";
             this.labelCount.Size = new System.Drawing.Size(72, 24);
             this.labelCount.TabIndex = 17;
@@ -568,10 +574,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBox.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBox.Location = new System.Drawing.Point(3, 63);
+            this.richTextBox.Location = new System.Drawing.Point(12, 63);
             this.richTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.richTextBox.Name = "richTextBox";
-            this.richTextBox.Size = new System.Drawing.Size(897, 150);
+            this.richTextBox.Size = new System.Drawing.Size(715, 86);
             this.richTextBox.TabIndex = 1;
             this.richTextBox.Text = "";
             // 
@@ -582,16 +588,17 @@
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(904, 445);
+            this.AccessibleRole = System.Windows.Forms.AccessibleRole.Window;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.AutoSize = true;
+            this.ClientSize = new System.Drawing.Size(739, 409);
             this.Controls.Add(this.splitContainer1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(922, 448);
+            this.MinimumSize = new System.Drawing.Size(755, 448);
             this.Name = "MainForm";
             this.Text = "(Un)Register DLL";
             this.Load += new System.EventHandler(this.MainForm_Load);

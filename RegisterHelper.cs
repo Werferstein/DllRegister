@@ -2,6 +2,7 @@
 using SLogging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing.Text;
 using System.EnterpriseServices;
 using System.IO;
@@ -25,205 +26,360 @@ namespace DllRegister
         [DllImport("kernel32")]
         public extern static bool FreeLibrary(int hLibModule);
 
-        [DllImport("kernel32")]
-        public extern static int LoadLibrary(string lpLibFileName);
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
+        public extern static IntPtr LoadLibrary(string lpLibFileName);
+
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
+
+        [DllImport("kernel32.dll")]
+        public static extern bool FreeLibrary(IntPtr hModule);
         
-        
+        // Delegate with function signature for the GetVersion function
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.U4)]
+        delegate UInt32 GetVersionDelegate(
+            [OutAttribute][InAttribute] StringBuilder versionString,
+            [OutAttribute] UInt32 length);
+
+
         private static string RegasmPath = string.Empty;
-        public static string BackupPath { get; private set; }
+        public static string BaseBackupPath { get; private set; }
         public static string LogFilePath { get; private set; }
 
-        
+
         public static bool IsComDllLoadable(string DllName)
         {
-            int libId = LoadLibrary(DllName);
-            if (libId > 0) FreeLibrary(libId);
-            return (libId > 0);
+            if (String.IsNullOrEmpty(DllName)) throw new ArgumentNullException("libPath");
+
+            IntPtr moduleHandle = LoadLibrary(DllName);
+            if (moduleHandle == IntPtr.Zero)
+            {
+                var lasterror = Marshal.GetLastWin32Error();
+                var innerEx = new Win32Exception(lasterror);
+                innerEx.Data.Add("LastWin32Error", lasterror);
+                Logger.Instance.AdddLog(LogType.Error, "Can't load DLL! " + DllName, "DllRegister","", innerEx);
+                return false;
+            }
+
+
+            //// Get handle to GetVersion method
+            //IntPtr get_version_handle = GetProcAddress(moduleHandle, "Version");
+            ////If we get a handle, we can get the function pointer and cast it to the delegate.
+            //// If successful, load function pointer
+            //if (get_version_handle != IntPtr.Zero)
+            //{
+            //    var _getversion = (GetVersionDelegate)Marshal.GetDelegateForFunctionPointer(
+            //        get_version_handle,
+            //        typeof(GetVersionDelegate));
+
+            //    if (_getversion != null)
+            //    {
+            //        // Allocate buffer
+            //        var size = 100;
+            //        StringBuilder builder = new StringBuilder(size);
+
+            //        // Get version string
+            //        _getversion(builder, (uint)size);
+
+            //        // Return string
+            //        //return builder.ToString();
+            //    }                
+            //}
+            FreeLibrary(moduleHandle);
+
+
+            return true;
+            //int libId = LoadLibrary(DllName);
+            //if (libId != 0) FreeLibrary(libId);
+            //return (libId > 0);
         }
 
 
-        public static bool Register(string outpath, string dllpath, string regasmPath,  bool installInGac, bool buildRegfile, bool codebase,string time, out string registryCode )
+        public static bool Register(Settings setting, string timeId)
+        //(string outpath, string dllpath, string regasmPath,  bool setting.InstallInGAC, bool buildRegfile, bool codebase,string time, out string registryCode )
         {
-            registryCode = string.Empty;
-            RegasmPath = regasmPath;
-            bool IsCopied = false;
-            bool ok = false;
-            try
+            if (setting == null || setting.FileItems == null || setting.FileItems.Count == 0 || string.IsNullOrWhiteSpace(setting.RegisterEXE))
             {
-                if (!installInGac)
+                Logger.Instance.AdddLog(LogType.Error, "Missing values in setting!", "DllRegister", "");
+                return false;
+            }
+            int regCount = 0;
+            bool error = false;
+            bool IsCopied = false;
+
+            if (!TestOutputPath(setting))
+            {
+                Logger.Instance.AdddLog(LogType.Warn, "No write access to the path: " + setting.OutputPath, "DllRegister", "");
+                return false;
+            }
+
+
+
+
+
+
+            BaseBackupPath = setting.OutputPath + setting.ProjectName + "\\";
+            if (!System.IO.Directory.Exists(BaseBackupPath)) System.IO.Directory.CreateDirectory(BaseBackupPath);
+            if (!System.IO.Directory.Exists(BaseBackupPath + "Backup")) System.IO.Directory.CreateDirectory(BaseBackupPath + "Backup");
+
+            //set previous result path
+            string previousPath = BaseBackupPath + "Backup\\" + timeId + "\\";
+            if (!System.IO.Directory.Exists(previousPath))
+            { System.IO.Directory.CreateDirectory(previousPath); }
+            else
+            {
+                IsCopied = true;
+            }
+
+
+
+            string registryCode = string.Empty;
+            foreach (var FileItem in setting.FileItems)
+            {
+                string tmpRegistryCode = string.Empty;
+
+
+                #region file item test                
+                if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
+                if (!System.IO.File.Exists(FileItem.FullPath))
                 {
-                    #region UnRegister ?
-                    if (!buildRegfile && DllRegister.IsRegistered(out bool bit64, out bool gac, dllpath, true, outpath, time))
+                    Logger.Instance.AdddLog(LogType.Error, "File not exist! " + FileItem.FullPath);
+                    error = true;
+                    continue;
+                }
+                #endregion
+
+                try
+                {
+                    if (!setting.InstallInGAC)
                     {
-                        if (!UnRegister(dllpath, regasmPath, outpath, time, installInGac))
+                        #region UnRegister ?
+                        if (!setting.BuildRegistryKey && DllRegister.IsRegistered(out bool bit64, out bool gac, FileItem.FullPath, true, setting.OutputPath, timeId))
                         {
-                            Logger.Instance.AdddLog(LogType.Error, "The already registered Dll cannot be unregistered! --> exit " + dllpath, "DllRegister", "");
-                            return false;
-                        }
-                    }
-                    #endregion
-
-                    #region set path
-                    string path = System.IO.Path.GetDirectoryName(dllpath) + "\\";
-                    if (!Logger.IsWritable(path))
-                    {
-                        Logger.Instance.AdddLog(LogType.Error, "No write access to the path: " + path, "DllRegister", "");
-                        return false;
-                    }
-                    string fileName = System.IO.Path.GetFileNameWithoutExtension(dllpath);
-                    string fileName_backup = fileName + "_reg\\";
-                    if (string.IsNullOrWhiteSpace(outpath) || !System.IO.Directory.Exists(outpath) || !Logger.IsWritable(outpath))
-                    {
-                        Logger.Instance.AdddLog(LogType.Error, "Check the output path, set to: " + path, "DllRegister", "");
-                        outpath = path;
-                    }
-
-                    if (!outpath.EndsWith("\\")) outpath += "\\";
-                    #endregion
-
-                    #region Backup?                                       
-                    BackupPath = outpath + fileName_backup;
-                    LogFilePath = BackupPath + fileName + ".log";
-                    if (!System.IO.Directory.Exists(BackupPath)) System.IO.Directory.CreateDirectory(BackupPath);
-                    if (!System.IO.Directory.Exists(BackupPath + "Backup")) System.IO.Directory.CreateDirectory(BackupPath + "Backup");
-                    string previousPath = BackupPath + "Backup\\" + time + "\\";
-                    if (!System.IO.Directory.Exists(previousPath))
-                    { System.IO.Directory.CreateDirectory(previousPath); }
-                    else
-                    {
-                        IsCopied = true;
-                    }
-                        
-
-                 
-     
-                    //copy reg
-                    if (!IsCopied && buildRegfile && System.IO.File.Exists(BackupPath + fileName + ".reg"))
-                    {
-                        if (System.IO.File.Exists(previousPath + fileName + ".reg")) System.IO.File.Delete(previousPath + fileName + ".reg");
-                        System.IO.File.Move(BackupPath + fileName + ".reg", previousPath  + fileName +  ".reg");                        
-                    }
-                    //copy tlb
-                    if (!IsCopied && !buildRegfile && System.IO.File.Exists(BackupPath + fileName + ".tlb"))
-                    {
-                        if (System.IO.File.Exists(previousPath + "bak_" + fileName + ".tlb")) System.IO.File.Delete(previousPath + "bak_" + fileName + ".tlb");
-                        System.IO.File.Move(BackupPath + fileName + ".tlb", previousPath + "bak_" + fileName + ".tlb");
-                    }
-                        
-                    if (!IsCopied && System.IO.File.Exists(path + fileName + ".tlb"))
-                    {
-                        if (System.IO.File.Exists(previousPath + fileName + ".tlb")) System.IO.File.Delete(previousPath + fileName + ".tlb");
-                        System.IO.File.Move(path + fileName + ".tlb", previousPath  + fileName + ".tlb");
-                    }
-                    //copy dll
-                    if (!IsCopied && !buildRegfile && System.IO.File.Exists(BackupPath + fileName + ".dll"))
-                    {
-                        if (System.IO.File.Exists(previousPath + "bak_" + fileName + ".dll")) System.IO.File.Delete(previousPath + "bak_" + fileName + ".dll");
-                        System.IO.File.Move(BackupPath + fileName + ".dll", previousPath + "bak_" + fileName + ".dll");
-                    }
-                        
-                    if (!IsCopied && System.IO.File.Exists(path + fileName + ".dll"))
-                    {
-                        if (System.IO.File.Exists(previousPath + fileName + ".dll")) System.IO.File.Delete(previousPath + fileName + ".dll");
-                        System.IO.File.Copy(path + fileName + ".dll", previousPath  + fileName + ".dll");
-                    }
-                    //copy log
-                    if (!IsCopied && System.IO.File.Exists(BackupPath + fileName + ".log"))
-                    {
-                        if (System.IO.File.Exists(previousPath + fileName + ".log")) System.IO.File.Delete(previousPath + fileName + ".log");
-                        System.IO.File.Move(BackupPath + fileName + ".log", previousPath  + fileName + ".log");
-                    }
-                    if (!IsCopied && System.IO.File.Exists(BackupPath + fileName + ".logReg"))
-                    {
-                        if (System.IO.File.Exists(previousPath + fileName + ".logReg")) System.IO.File.Delete(previousPath + fileName + ".logReg");
-                        System.IO.File.Move(BackupPath + fileName + ".logReg", previousPath + fileName + ".logReg");
-                    }
-                    #endregion
-
-                    string fnameTlb = " /tlb:\"" + path + fileName + ".tlb\"";                    
-                    string regFile = " /regfile:\"" + BackupPath + fileName + ".reg\"";
-                    string dll = " \"" + dllpath + "\"";
-
-                    string argumentsReg = dll +  regFile + (codebase ? " /codebase" : "") + " /verbose";
-                    string arguments = dll + fnameTlb + (codebase ? " /codebase" : "") + " /verbose";
-
-                    #region Build RegFile
-                    if (System.IO.File.Exists(BackupPath + fileName + ".reg")) System.IO.File.Delete(BackupPath + fileName + ".reg");
-                    if (!ExecProcess(argumentsReg, regasmPath, path) || !System.IO.File.Exists(BackupPath + fileName + ".reg"))
-                    {
-                        Logger.Instance.AdddLog(LogType.Error, "Could not create registry data ! --> exit (" + dllpath + ")");
-                        ok = false;
-                    }
-                    #endregion
-
-                    #region Register Dll
-                    if (!buildRegfile && System.IO.File.Exists(path + fileName + ".tlb")) System.IO.File.Delete(path + fileName + ".tlb");
-                    if ((!buildRegfile && !ExecProcess(arguments, regasmPath, path)) || !System.IO.File.Exists(path + fileName + ".tlb"))
-                    {
-                        return false;
-                    } 
-                    #endregion
-                    else
-                    {
-                        #region is registered?
-                        if (!buildRegfile)
-                        {
-                            if (DllRegister.IsRegistered(out bit64, out gac, dllpath, false, outpath, time))
+                            if (!UnRegister(FileItem.FullPath, setting.RegisterEXE, setting.OutputPath, timeId, setting.InstallInGAC))
                             {
-                                Logger.Instance.AdddLog(LogType.Info, "DLL Register " + (bit64 ? "(64bit) " : "") + (gac ? "installed in GAC " : "") + "-->" + dllpath + " OK!", "DllRegister", "");
-                                ok = true;
+                                Logger.Instance.AdddLog(LogType.Error, "The already registered Dll cannot be unregistered! --> exit " + FileItem.FullPath, "DllRegister", "");
+                                error = true;
+                                continue;
+                            }
+                        }
+                        #endregion
+
+                        #region set path
+                        //Get Dll paht
+                        string path = System.IO.Path.GetDirectoryName(FileItem.FullPath) + "\\";
+
+                        //get Dll name
+                        string fileName = System.IO.Path.GetFileNameWithoutExtension(FileItem.FullPath);
+
+                        //set tlb path
+                        string tlbPath = path;
+                        //Is Dll paht writable?
+                        if (!Logger.IsWritable(tlbPath))
+                        {
+                            Logger.Instance.AdddLog(LogType.Error, "No write access to the path: " + path, "DllRegister", "");
+                            tlbPath = BaseBackupPath;
+                            Logger.Instance.AdddLog(LogType.Error, "Set tlb output to : " + tlbPath, "DllRegister", "");
+                        }
+                        tlbPath += fileName + ".tlb";
+
+
+                        #endregion
+
+                        #region Backup?                                       
+
+
+
+                        //copy reg
+                        if (!IsCopied && setting.BuildRegistryKey && System.IO.File.Exists(BaseBackupPath + fileName + ".reg"))
+                        {
+                            if (System.IO.File.Exists(previousPath + fileName + ".reg")) System.IO.File.Delete(previousPath + fileName + ".reg");
+                            System.IO.File.Move(BaseBackupPath + fileName + ".reg", previousPath + fileName + ".reg");
+                        }
+                        //copy tlb
+                        if (!IsCopied && !setting.BuildRegistryKey && System.IO.File.Exists(BaseBackupPath + fileName + ".tlb"))
+                        {
+                            if (System.IO.File.Exists(previousPath + "bak_" + fileName + ".tlb")) System.IO.File.Delete(previousPath + "bak_" + fileName + ".tlb");
+                            System.IO.File.Move(BaseBackupPath + fileName + ".tlb", previousPath + "bak_" + fileName + ".tlb");
+                        }
+
+                        if (!IsCopied && System.IO.File.Exists(path + fileName + ".tlb"))
+                        {
+                            if (System.IO.File.Exists(previousPath + fileName + ".tlb")) System.IO.File.Delete(previousPath + fileName + ".tlb");
+                            System.IO.File.Move(path + fileName + ".tlb", previousPath + fileName + ".tlb");
+                        }
+                        //copy dll
+                        if (!IsCopied && !setting.BuildRegistryKey && System.IO.File.Exists(BaseBackupPath + fileName + ".dll"))
+                        {
+                            if (System.IO.File.Exists(previousPath + "bak_" + fileName + ".dll")) System.IO.File.Delete(previousPath + "bak_" + fileName + ".dll");
+                            System.IO.File.Move(BaseBackupPath + fileName + ".dll", previousPath + "bak_" + fileName + ".dll");
+                        }
+
+                        if (!IsCopied && !setting.BuildRegistryKey && System.IO.File.Exists(path + fileName + ".dll"))
+                        {
+                            if (System.IO.File.Exists(previousPath + fileName + ".dll") && path != previousPath) System.IO.File.Delete(previousPath + fileName + ".dll");
+                            System.IO.File.Copy(path + fileName + ".dll", previousPath + fileName + ".dll");
+                        }
+                        //copy log
+                        if (!IsCopied && System.IO.File.Exists(BaseBackupPath + fileName + ".log"))
+                        {
+                            if (System.IO.File.Exists(previousPath + fileName + ".log")) System.IO.File.Delete(previousPath + fileName + ".log");
+                            System.IO.File.Move(BaseBackupPath + fileName + ".log", previousPath + fileName + ".log");
+                        }
+                        if (!IsCopied && System.IO.File.Exists(BaseBackupPath + fileName + ".logReg"))
+                        {
+                            if (System.IO.File.Exists(previousPath + fileName + ".logReg")) System.IO.File.Delete(previousPath + fileName + ".logReg");
+                            System.IO.File.Move(BaseBackupPath + fileName + ".logReg", previousPath + fileName + ".logReg");
+                        }
+                        #endregion
+
+                        string fnameTlb = " /tlb:\"" + tlbPath + "\"";
+                        string regFile = " /regfile:\"" + BaseBackupPath + fileName + ".reg\"";
+                        string dll = " \"" + FileItem.FullPath + "\"";
+
+                        string argumentsReg = dll + regFile + (setting.Codebase ? " /codebase" : "") + " /verbose";
+                        string arguments = dll + fnameTlb + (setting.Codebase ? " /codebase" : "") + " /verbose";
+
+                        #region Build RegFile
+                        if (System.IO.File.Exists(BaseBackupPath + fileName + ".reg")) System.IO.File.Delete(BaseBackupPath + fileName + ".reg");
+                        if (!ExecProcess(argumentsReg, setting.RegisterEXE, path) || !System.IO.File.Exists(BaseBackupPath + fileName + ".reg"))
+                        {
+                            Logger.Instance.AdddLog(LogType.Error, "Could not create registry data ! --> exit (" + FileItem.FullPath + ")");
+                            error = true;
+                            continue;
+                        }
+                        //read reg code from file
+                        tmpRegistryCode = System.IO.File.ReadAllText(BaseBackupPath + fileName + ".reg");
+                        #endregion
+
+                        #region Register Dll
+                        if (!setting.BuildRegistryKey)
+                        {
+                            //delete old result
+                            if (System.IO.File.Exists(tlbPath)) System.IO.File.Delete(tlbPath);
+                            if (!ExecProcess(arguments, setting.RegisterEXE, path) || !System.IO.File.Exists(tlbPath))
+                            {
+                                //error
+                                Logger.Instance.AdddLog(LogType.Error, "Could not register dll! --> exit (" + FileItem.FullPath + ")");
+                                error = true;
+                                continue;
+                            }
+                            #region is registered?                            
+                            if (DllRegister.IsRegistered(out bit64, out gac, FileItem.FullPath, false, setting.OutputPath, timeId))
+                            {
+                                Logger.Instance.AdddLog(LogType.Info, "DLL Register " + (bit64 ? "(64bit) " : "") + (gac ? "installed in GAC " : "") + "-->" + FileItem.FullPath + " OK!", "DllRegister", "");
 
                                 if (System.IO.File.Exists(path + fileName + ".dll"))
                                 {
-                                    if (System.IO.File.Exists(BackupPath + fileName + ".dll")) System.IO.File.Delete(BackupPath + fileName + ".dll");
-                                    System.IO.File.Copy(path + fileName + ".dll", BackupPath + fileName + ".dll");
+                                    if (System.IO.File.Exists(BaseBackupPath + fileName + ".dll")) System.IO.File.Delete(BaseBackupPath + fileName + ".dll");
+                                    System.IO.File.Copy(path + fileName + ".dll", BaseBackupPath + fileName + ".dll");
                                 }
                                 if (System.IO.File.Exists(path + fileName + ".tlb"))
                                 {
-                                    if (System.IO.File.Exists(BackupPath + fileName + ".tlb")) System.IO.File.Delete(BackupPath + fileName + ".tlb");
-                                    System.IO.File.Copy(path + fileName + ".tlb", BackupPath + fileName + ".tlb");
+                                    if (System.IO.File.Exists(BaseBackupPath + fileName + ".tlb")) System.IO.File.Delete(BaseBackupPath + fileName + ".tlb");
+                                    System.IO.File.Copy(path + fileName + ".tlb", BaseBackupPath + fileName + ".tlb");
                                 }
                             }
                             else
                             {
-                                Logger.Instance.AdddLog(LogType.Error, "DLL Register " + (bit64 ? "(64bit) " : "") + (gac ? "installed in GAC " : "") + "-->" + dllpath + " ERROR!", "DllRegister", "");
-                                ok = false;
+                                Logger.Instance.AdddLog(LogType.Error, "DLL Register " + (bit64 ? "(64bit) " : "") + (gac ? "installed in GAC " : "") + "-->" + FileItem.FullPath + " ERROR!", "DllRegister", "");
+                                error = true;
                             }
+                            #endregion
                         }
-                        else
+                        #endregion
+                    }
+                    else
+                    {
+                        #region GAC
+                        if (DllRegister.RegisterInGAC(FileItem.FullPath))
                         {
-                            if (System.IO.File.Exists(BackupPath + fileName + ".reg"))
-                            {
-                                ok = true;
-
-                                registryCode = System.IO.File.ReadAllText(BackupPath + fileName + ".reg");
-
-                                //foreach (var item in System.IO.File.ReadAllLines(outpath + fileName + ".reg"))
-                                //{
-                                //    registryCode += item + Environment.NewLine;
-                                //}
-                            }
+                            Logger.Instance.AdddLog(LogType.Info, "DLL Register in GAC OK! " + FileItem.FullPath, "DllRegister");
                         }
                         #endregion
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    #region GAC
-                    if (DllRegister.RegisterInGAC(dllpath))
-                    {
-                        Logger.Instance.AdddLog(LogType.Info, "DLL Register in GAC OK! " + dllpath, "DllRegister");
-                    } 
-                    #endregion
+                    error = true;
+                    Logger.Instance.AdddLog(LogType.Error, "Register? " + FileItem.FullPath, "DllRegister", "", ex);
                 }
-            }
-            catch (Exception ex)
+
+                #region Build registry code
+                if (!string.IsNullOrWhiteSpace(tmpRegistryCode))
+                {
+                    regCount++;
+                    registryCode += "/*--" + FileItem.FullPath + Environment.NewLine +
+                        "------------------------------------------------------" + Environment.NewLine + Environment.NewLine +
+                        tmpRegistryCode + Environment.NewLine + Environment.NewLine;
+                }
+                #endregion
+
+            }//foreach (var FileItem in setting.FileItems)
+
+
+
+            #region save all reg code
+            if (regCount > 1 && !string.IsNullOrWhiteSpace(registryCode) && !string.IsNullOrWhiteSpace(DllRegister.BaseBackupPath) && System.IO.Directory.Exists(DllRegister.BaseBackupPath))
             {
-                ok = false;
-                Logger.Instance.AdddLog(LogType.Error, "Register? " + dllpath, "DllRegister", "", ex);
+                System.IO.File.WriteAllText(DllRegister.LogFilePath + "Reg", registryCode);
             }
-            return ok;
+            #endregion
+            return !error;
         }
+
+        public static bool UnRegister(Settings setting, string timeId)
+        {
+            if (setting == null || setting.FileItems == null || string.IsNullOrWhiteSpace(setting.RegisterEXE)) throw new Exception("Missing values in Setting!");
+            int regCount = 0;
+            bool error = false;
+            bool IsCopied = false;
+
+            if (!TestOutputPath(setting))
+            {
+                Logger.Instance.AdddLog(LogType.Warn, "No write access to the path: " + setting.OutputPath, "DllRegister", "");
+                return false;
+            }
+
+
+            BaseBackupPath = setting.OutputPath + setting.ProjectName + "\\";
+            if (!System.IO.Directory.Exists(BaseBackupPath)) System.IO.Directory.CreateDirectory(BaseBackupPath);
+            //if (!System.IO.Directory.Exists(BaseBackupPath + "Backup")) System.IO.Directory.CreateDirectory(BaseBackupPath + "Backup");
+
+            ////set previous result path
+            //string previousPath = BaseBackupPath + "Backup\\" + timeId + "\\";
+            //if (!System.IO.Directory.Exists(previousPath))
+            //{ System.IO.Directory.CreateDirectory(previousPath); }
+            //else
+            //{
+            //    IsCopied = true;
+            //}
+
+      
+            foreach (var FileItem in setting.FileItems)
+            {
+
+                #region file item test                
+                if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
+                if (!System.IO.File.Exists(FileItem.FullPath))
+                {
+                    Logger.Instance.AdddLog(LogType.Error, "File not exist! " + FileItem.FullPath);
+                }
+                #endregion
+
+                //UnRegister
+                if (!UnRegister(FileItem.FullPath, setting.RegisterEXE, setting.OutputPath, timeId, setting.InstallInGAC))
+                {
+                    Logger.Instance.AdddLog(LogType.Error, "Unregister ERROR! " + FileItem.FullPath, "DllRegister", "");
+                    error = true;
+                    continue;
+                }               
+            }//foreach (var FileItem in setting.FileItems)
+            return !error;
+        }
+
+
 
         public static bool UnRegister(string dllpath, string regasmPath, string outpath, string time, bool installInGac = false)
         {
@@ -234,7 +390,8 @@ namespace DllRegister
             {
                 if (!installInGac)
                 {
-                    if (DllRegister.IsRegistered(out bool bit64, out bool gac, dllpath,true, outpath, time))
+                    DllRegister.IsRegistered(out bool bit64, out bool gac, dllpath, true, outpath, time);
+
                     {
 
                         #region set path
@@ -248,8 +405,8 @@ namespace DllRegister
                             outpath = path;
                         }
                         if (!outpath.EndsWith("\\")) outpath += "\\";
-                        BackupPath = outpath + fileName_backup;
-                        LogFilePath = BackupPath + "UnReg_" + fileName + ".log"; 
+
+                        if (!System.IO.Directory.Exists(BaseBackupPath)) Logger.Instance.AdddLog(LogType.Error, "Backup path?: " + BaseBackupPath, "DllRegister", "");                        
                         #endregion
 
 
@@ -297,6 +454,66 @@ namespace DllRegister
 
             return ok;
         }
+
+
+        #region TestOutputPath
+        private static bool TestOutputPath(Settings setting)
+        {
+            if (Environment.Is64BitProcess)
+            {
+                Logger.Instance.AdddLog(LogType.Info, "This is a 64 bit proccess!");
+            }
+
+
+            if (string.IsNullOrWhiteSpace(setting.OutputPath) || !System.IO.Directory.Exists(setting.OutputPath) || !Logger.IsWritable(setting.OutputPath))
+            {
+
+                #region set to dll path ?
+                string internalLink = System.IO.Path.GetDirectoryName(setting.FileItems[0].FullPath);
+                foreach (var item in setting.FileItems)
+                {
+                    if (internalLink != System.IO.Path.GetDirectoryName(item.FullPath))
+                    {
+                        internalLink = string.Empty;
+                        break;
+                    }
+                }
+                if (string.IsNullOrEmpty(internalLink) || !Logger.IsWritable(internalLink)) internalLink = string.Empty;
+                #endregion
+
+                if (!string.IsNullOrEmpty(internalLink))
+                {
+                    setting.OutputPath = internalLink;
+                    Logger.Instance.AdddLog(LogType.Warn, "Check the output path! set output path to (dll folder): " + setting.OutputPath, "DllRegister", "");
+                }
+                else
+                {
+                    setting.OutputPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+                    Logger.Instance.AdddLog(LogType.Warn, "Check the output path! set output path to: " + setting.OutputPath, "DllRegister", "");
+                }
+            }
+
+            if (!setting.OutputPath.EndsWith("\\")) setting.OutputPath += "\\";
+            
+
+
+
+            if (!Logger.IsWritable(setting.OutputPath))
+            {
+                return false;
+            }
+
+
+            System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9 -]");
+            setting.ProjectName = rgx.Replace(setting.ProjectName, "");
+            if (string.IsNullOrWhiteSpace(setting.ProjectName)) setting.ProjectName = "RegisterDLL";
+
+            //set log file path
+            LogFilePath = setting.OutputPath + setting.ProjectName + ".log";
+
+            return true;
+        }
+        #endregion
 
         #region IsRegistered
         public static bool IsRegistered(out bool bit64, out bool gac, string path, bool correct,string outPath, string time)
@@ -383,49 +600,67 @@ namespace DllRegister
 
             if (string.IsNullOrEmpty(CLSID) || string.IsNullOrEmpty(CLSID64))
             {
+                string DllName = System.IO.Path.GetFileNameWithoutExtension(path);
                 string Id = GetCLSIDFromDllName(System.IO.Path.GetFileNameWithoutExtension(path));
                 if (Id !=  string.Empty)
                 {
                     RegistryKey t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("CLSID" + "\\{" + Id + "}\\InProcServer32");
-                    if (t_clsidSubKey == null)
+                    if (t_clsidSubKey != null)
                     {
-                        t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
+                        Logger.Instance.AdddLog(LogType.Info, "--------------------------------------------------------------------------------------------------------");
+                        Logger.Instance.AdddLog(LogType.Info, "CLSID" + "\\{" + Id + "}\\InProcServer32", "DllRegister");
+                        foreach (var item in t_clsidSubKey.GetValueNames())
+                        {
+                            string h = t_clsidSubKey.GetValue(item).ToString();
+                            if (h.ToUpper().EndsWith(DllName.ToUpper()) || h.ToUpper().Contains(DllName.ToUpper()))
+                            {
+                                Logger.Instance.AdddLog(LogType.Info, item + ": " + h, "DllRegister");
+                            }
+                        }
+                        Logger.Instance.AdddLog(LogType.Info, "--------------------------------------------------------------------------------------------------------");
                     }
-                    if (t_clsidSubKey == null)
-                    {
-                        message.AppendLine(@"No CLSID fond in registry! " + System.IO.Path.GetFileName(path));                        
-                        Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
-                        return false;
+                    else
+                    {                        
+                        message.AppendLine("Can't open CLSID in root folder, set to Wow6432Node");
                     }
 
 
-                    if (SearchValueRegistryNative(t_clsidSubKey.Name, System.IO.Path.GetFileName(path), out string value))
+
+                    t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
+                    if (t_clsidSubKey != null)
                     {
-                        regKey = t_clsidSubKey.Name;
-                        newpath = value;
-                        CLSID = Id;
+                        Logger.Instance.AdddLog(LogType.Info, "--------------------------------------------------------------------------------------------------------");
+                        Logger.Instance.AdddLog(LogType.Info, "Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
+                        foreach (var item in t_clsidSubKey.GetValueNames())
+                        {
+                            string h = t_clsidSubKey.GetValue(item).ToString();
+                            if (h.ToUpper().EndsWith(DllName.ToUpper()) || h.ToUpper().Contains(DllName.ToUpper()))
+                            {
+                                Logger.Instance.AdddLog(LogType.Info, item + ": " + h, "DllRegister");
+                            }
+                        }
+                        Logger.Instance.AdddLog(LogType.Info, "--------------------------------------------------------------------------------------------------------");
                     }
                     else
                     {
-                        message.AppendLine(@"No CLSID fond in registry! " + System.IO.Path.GetFileName(path));
+                        message.AppendLine(@"No CLSID fond in registry! (Wow6432Node\\CLSID) " + System.IO.Path.GetFileName(path));
                         Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
-                        return false;
                     }
                 }
                 else
                 {
-                    message.AppendLine(@"No CLSID fond in registry! " + System.IO.Path.GetFileName(path));
+                    message.AppendLine(@"No CLSID fond in registry! (CLSID is empty from Dll name)" + System.IO.Path.GetFileName(path));
                     Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
                     return false;
                 }
             }
-            if (CLSID != CLSID64)
+            if (!string.IsNullOrEmpty(CLSID) && !string.IsNullOrEmpty(CLSID64) && CLSID != CLSID64)
             {
                 message.AppendLine("ERROR| The CLSID is different from Wow6432Node:");
                 message.AppendLine("in CLSID      : " + CLSID);
                 message.AppendLine("in Wow6432Node: " + CLSID64);
             }
-            if (newpath != newpath64)
+            if (!string.IsNullOrEmpty(newpath) && !string.IsNullOrEmpty(newpath64) && newpath != newpath64)
             {
                 message.AppendLine("ERROR| The CLSID path is different from Wow6432Node path:");
                 message.AppendLine("in CLSID      : " + newpath);
@@ -475,12 +710,12 @@ namespace DllRegister
                     }
                     else
                     {
-                        Logger.Instance.AdddLog(LogType.Error, dllName + " key not fount ?", "DllRegister", "");
+                        Logger.Instance.AdddLog(LogType.Error, "Registration key not found (from Dll Name)? " + dllName, "DllRegister", "");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.AdddLog(LogType.Error, "Get CLSID?", "DllRegister", "", ex);
+                    Logger.Instance.AdddLog(LogType.Error, "ERROR: Get CLSID?", "DllRegister", "", ex);
                     return string.Empty;
                 }
             }
@@ -494,12 +729,11 @@ namespace DllRegister
             if (string.IsNullOrEmpty(RegKeyName) || RegKey == null) return null;
             foreach (string Keyname in RegKey.GetSubKeyNames())
             {
-                if (Keyname.Contains(RegKeyName))
+                if (Keyname.ToUpper().Contains(RegKeyName.ToUpper()))
                 {
                     return RegKey.OpenSubKey(Keyname);
                 }
-            }
-            Logger.Instance.AdddLog(LogType.Error, "Registration key not found? " + RegKeyName, "DllRegister", "");
+            }            
             return null;
         }
         #endregion
@@ -519,42 +753,44 @@ namespace DllRegister
             CLSID = string.Empty;
             path = string.Empty;
             if (string.IsNullOrWhiteSpace(dllName) || !dllName.ToLower().EndsWith(".dll")) return string.Empty;
-
+            SearchInValues = 0;
+            SearchKeys = 0;
 
             //Registry.ClassesRoot.DeleteSubKeyTree("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}");
             //Registry.ClassesRoot.CreateSubKey("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}\\InProcServer32");
 
             //RegistryKey t_ = Registry.ClassesRoot.OpenSubKey("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}\\InProcServer32");
             //Registry.SetValue(t_.Name,"", @"E:\Nextcloud\Projekt\C#\Register DLL\DLL Temlate\BluefrogLibrary\bin\Releas\BluefrogLibary.dll", RegistryValueKind.String);
-
+            //RegistryKey t_test = Registry.ClassesRoot.OpenSubKey("CLSID\\{7875D9D8-1B94-4AE4-A8F0-63B3F8609336}", System.Security.AccessControl.RegistryRights.FullControl);
 
             //Open the HKEY_CLASSES_ROOT\CLSID which contains the list of all registered COM files (.ocx,.dll, .ax) 
             //on the system no matters if is 32 or 64 bits.
             RegistryKey t_clsidKey = Registry.ClassesRoot.OpenSubKey(root);
+            
+           
 
             //Get all the sub keys it contains, wich are the generated GUID of each COM.            
             foreach (string subKeyName in t_clsidKey.GetSubKeyNames())
             {
-                //if (subKeyName.ToUpper() == "{88ABA9D3-5980-4A42-871E-FAB235F8A7CD}".ToUpper())
-                //{
-                //}
-
                 //For each CLSID\GUID key we get the InProcServer32 sub-key .
                 string regPath = root + "\\" + subKeyName + "\\InProcServer32";
                 if (SearchValueRegistryNative(regPath, dllName, out string value))
                 {
                     CLSID = subKeyName;
                     path = value.Replace(@"file:///", "").Replace(@"FILE:///", "").Replace(@"/",@"\");
-                    Logger.Instance.AdddLog(LogType.Info, "Found -> CLSID:" + CLSID + " Path: " + path + Environment.NewLine + regPath + Environment.NewLine, "DllRegister", "");
+                    Logger.Instance.AdddLog(LogType.Info, "Found -> CLSID:" + CLSID + " Path: " + path + " (Keys: "  + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")" + Environment.NewLine + regPath + Environment.NewLine, "DllRegister", "");
                     if (!System.IO.File.Exists(path)) Logger.Instance.AdddLog(LogType.Error, "File not found Path from RegKey-> (" + root + "\\" + CLSID + ") Path: " + path, "DllRegister", "");
                     return regPath;
                 }
             }
 
             //if not exist, return nothing
+            Logger.Instance.AdddLog(LogType.Error, "Not found in Keys (" + root + "): " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString(), "DllRegister", "");
             return string.Empty;
         }
 
+        private static int SearchInValues = 0;
+        private static int SearchKeys = 0;
 
         /// <summary>
         /// Find Values
@@ -566,18 +802,31 @@ namespace DllRegister
         public static  bool SearchValueRegistryNative(string regPath, string dllName, out string value)
         {
             value = string.Empty;
+            SearchKeys++;
 
             RegistryKey t_clsidSubKey = Registry.ClassesRoot.OpenSubKey(regPath);
             if ((t_clsidSubKey != null) && (t_clsidSubKey.GetValueNames()).Length > 0)
             {
-                foreach (var t_value in from string ValueName in t_clsidSubKey.GetValueNames()
-                                        let t_value = t_clsidSubKey.GetValue(ValueName).ToString()
-                                        where t_value.ToUpper().EndsWith(dllName.ToUpper())
-                                        select t_value)
+                foreach (var item in t_clsidSubKey.GetValueNames())
                 {
-                    value = t_value;
-                    return true;
+                    SearchInValues++;
+                    string h =  t_clsidSubKey.GetValue(item).ToString();
+
+                    if (h.ToUpper().EndsWith(dllName.ToUpper()) || h.ToUpper().Contains(dllName.ToUpper()))
+                    {
+                        value = h;
+                        return true;
+                    }
                 }
+
+                //foreach (var t_value in from string ValueName in t_clsidSubKey.GetValueNames()
+                //                        let t_value = t_clsidSubKey.GetValue(ValueName).ToString()
+                //                        where t_value.ToUpper().EndsWith(dllName.ToUpper())
+                //                        select t_value)
+                //{
+                //    value = t_value;
+                //    return true;
+                //}
             }
             return false;
         }
