@@ -78,9 +78,16 @@ namespace DllRegister
         }
 
         private void MainForm_Load(object sender, EventArgs e)
-        {
-            
+        {            
             blockGui = true;
+            if (SystemUtil.InternalCheckIsWow64() && !Environment.Is64BitProcess && MessageBox.Show("With a 32bit application no registry entries can be read which refer to 64bit DLLs. Please use a 64bit version of the program." + Environment.NewLine + "Close application?", "The system is 64bit but the running application is 32bit", MessageBoxButtons.OKCancel, MessageBoxIcon.Error) == DialogResult.OK)
+            {                
+                Application.Exit();
+                this.Close();
+                return;
+            }
+
+
 
             GetInfo();
             labelResult.BorderStyle = BorderStyle.None;
@@ -305,8 +312,8 @@ namespace DllRegister
             labelResult.Text = string.Empty;
             richTextBox.Text = string.Empty;
            
-
             Logger.Instance.AdddLog(LogType.Debug, "Start to unregister DLLs!", this);
+            GetUiInput();
 
             if (comboBoxNetLink.SelectedItem == null || string.IsNullOrWhiteSpace((comboBoxNetLink.SelectedItem as NetItem).FullPath) || !System.IO.File.Exists((comboBoxNetLink.SelectedItem as NetItem).FullPath))
             {

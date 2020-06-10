@@ -297,10 +297,8 @@ namespace DllRegister
                     else
                     {
                         #region GAC
-                        if (DllRegister.RegisterInGAC(FileItem.FullPath))
-                        {
-                            Logger.Instance.AdddLog(LogType.Info, "DLL Register in GAC OK! " + FileItem.FullPath, "DllRegister");
-                        }
+                        error = !DllRegister.RegisterInGAC(FileItem.FullPath);
+                        if (!error) Logger.Instance.AdddLog(LogType.Info, "DLL Register in GAC OK! " + FileItem.FullPath, "DllRegister");   
                         #endregion
                     }
                 }
@@ -443,10 +441,8 @@ namespace DllRegister
                 }
                 else
                 {
-                    if (DllRegister.UnregisterInGAC(dllpath))
-                    {
-                        Logger.Instance.AdddLog(LogType.Info, "DLL Unregister in GAC OK! " + dllpath, "DllRegister", "");
-                    }
+                    ok = DllRegister.UnregisterInGAC(dllpath);
+                    if (ok) Logger.Instance.AdddLog(LogType.Info, "DLL Unregister in GAC OK! " + dllpath, "DllRegister", "");
                 }
             }
             catch (Exception ex)
@@ -526,25 +522,20 @@ namespace DllRegister
             bit64 = false;
             int error = 0;
             StringBuilder message = new StringBuilder();
+            message.AppendLine();
+
+            gac = TestIsInGAG(path, message, out string _);
 
             #region Direct loadable?
             if (DllRegister.IsComDllLoadable(path))
             {
-                message.AppendLine("The DLL is loadable over path: " + path);
+                message.AppendLine("The DLL is direct loadable over path: " + path);
             }
             else
             {
-                if (DllRegister.IsComDllLoadable(System.IO.Path.GetFileName(path)))
-                {
-                    message.AppendLine("The DLL is (loadable and) registered in GAC: " + System.IO.Path.GetFileName(path));
-                    gac = true;
-                }
-                else
-                {
-                    message.AppendLine("Error: The DLL is not loadable! " + System.IO.Path.GetFileName(path));
-                    error++;
-                }
-            } 
+                message.AppendLine("Error: The DLL is not direct loadable over path! " + System.IO.Path.GetFileName(path));
+                error++;
+            }
             #endregion
 
             #region main 32bit & 64bit
@@ -593,12 +584,12 @@ namespace DllRegister
                         MessageBox.Show("The DLL path found in the registry (Wow6432Node) differs from the new path to DLL. Should this path be corrected?" + Environment.NewLine + regKey, "Should this path be corrected", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
                     {
                         Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
-                        UnRegister(newpath, RegasmPath, outPath,time);
+                        UnRegister(newpath, RegasmPath, outPath, time);
                         CleanReg(CLSID, newpath);
                         return true;
                     }
                 }
-            } 
+            }
             #endregion
 
 
@@ -606,7 +597,7 @@ namespace DllRegister
             {
                 string DllName = System.IO.Path.GetFileNameWithoutExtension(path);
                 string Id = GetCLSIDFromDllName(System.IO.Path.GetFileNameWithoutExtension(path));
-                if (Id !=  string.Empty)
+                if (Id != string.Empty)
                 {
                     RegistryKey t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("CLSID" + "\\{" + Id + "}\\InProcServer32");
                     if (t_clsidSubKey != null)
@@ -624,7 +615,7 @@ namespace DllRegister
                         Logger.Instance.AdddLog(LogType.Info, "--------------------------------------------------------------------------------------------------------");
                     }
                     else
-                    {                        
+                    {
                         message.AppendLine("Can't open CLSID in root folder, set to Wow6432Node");
                     }
 
@@ -671,10 +662,34 @@ namespace DllRegister
                 message.AppendLine("in Wow6432Node: " + newpath64);
             }
 
-            message.AppendLine("The CLSID " + CLSID + " " + (CLSID64 != ""  && CLSID != CLSID64 ? "(64bit " + CLSID + ")" :"" ) + " was found in the registry!");
+            message.AppendLine("The CLSID " + CLSID + " " + (CLSID64 != "" && CLSID != CLSID64 ? "(64bit " + CLSID + ")" : "") + " was found in the registry!");
             Logger.Instance.AdddLog(LogType.Info, message.ToString(), "DllRegister");
             return true;
-        } 
+        }
+
+        private static bool TestIsInGAG(string path, StringBuilder message,out string newPath )
+        {
+            bool gac = false;
+            newPath = string.Empty;
+            if (SystemUtil.IsAssemblyInGAC(System.IO.Path.GetFileNameWithoutExtension(path)))
+            {
+                message.AppendLine("The DLL is registered in GAC (Fusion): " + System.IO.Path.GetFileName(path));
+                if (!gac) gac = true;
+            }
+
+            if (FindInGAC_Reg(System.IO.Path.GetFileNameWithoutExtension(path), out string value))
+            {
+                message.AppendLine("The DLL is registered in GAC (Registry): " + value);
+                if (!gac) gac = true;
+            }
+            if (DllRegister.IsAssemblyInGAC(path, out string xpath))
+            {
+                newPath = xpath;
+                message.AppendLine("The DLL is registered in GAC (Assembly): " + xpath);
+                if (!gac) gac = true;
+            }
+            return gac;
+        }
         #endregion
 
         #region Get CLSID from Dll name
@@ -836,65 +851,126 @@ namespace DllRegister
         }
         #endregion
 
-            #region GAC
-            public static bool RegisterInGAC(string path)
+        #region GAC
+        public static bool RegisterInGAC(string path)
         {
             UnregisterInGAC(path);
+            bool ok = false;
+            StringBuilder message = new StringBuilder();
             try
             {
-                new System.EnterpriseServices.Internal.Publish().GacInstall(path);
-                Logger.Instance.AdddLog(LogType.Debug, "Register in GAC -> Ok!", "DllRegister", "");
-                return true;
+                new System.EnterpriseServices.Internal.Publish().GacInstall(path);                
+                if (TestIsInGAG(path, message, out string newpath))
+                {
+                    ok = true;
+                    if (!string.IsNullOrWhiteSpace(newpath) && System.IO.File.Exists(newpath))
+                    {
+                        message.AppendLine("Register in GAC -> Ok! " + newpath);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Logger.Instance.AdddLog(LogType.Error, "Register in GAC?", "DllRegister", "", ex);
-                return false;
             }
+            Logger.Instance.AdddLog(LogType.Debug, message.ToString(), "DllRegister", "");
+            return ok;
         }
         public static bool UnregisterInGAC(string path)
 
         {
+            bool ok = false;
+            StringBuilder message = new StringBuilder();
+
             try
             {
                 if (System.IO.File.Exists(path))
-                {
-                    Assembly z = System.Reflection.Assembly.LoadFile(path);
-                    if (z != null && IsAssemblyInGAC(z.FullName))
+                {                    
+                    if (TestIsInGAG(path, message, out string newpath))
                     {
-                        Logger.Instance.AdddLog(LogType.Debug, "DLL found in GAC!", "DllRegister", "");
-                        z = null;
+                        if (!string.IsNullOrWhiteSpace(newpath) && System.IO.File.Exists(newpath))
+                        {
+                            new System.EnterpriseServices.Internal.Publish().GacRemove(newpath);
+                            if (!System.IO.File.Exists(newpath))
+                            {
+                                message.AppendLine("Unregister in GAC -> Ok! " + newpath);                                ;
+                                ok = true;                                
+                            }
+                        }
+                        else
+                        {
+                            message.AppendLine("Unregister in GAC (path not fount over assenbly!) -> " + path);
+                            new System.EnterpriseServices.Internal.Publish().GacRemove(path);
+                            ok = true;
+                        }
                     }
                 }
             }
-            catch { }
-
-
-            try
-            {
-                new System.EnterpriseServices.Internal.Publish().GacRemove(path);
-                Logger.Instance.AdddLog(LogType.Debug, "Unregister in GAC -> Ok!", "DllRegister", "");
-                return true;
-            }
             catch (Exception ex)
             {
-                Logger.Instance.AdddLog(LogType.Error, "Unregister in GAC?", "DllRegister", "", ex);
+                Logger.Instance.AdddLog(LogType.Error, "Unregister in GAC?", "DllRegister", "", ex);                
+            }
+            Logger.Instance.AdddLog(LogType.Debug, message.ToString(), "DllRegister", "");
+            return ok;
+
+
+            //try
+            //{
+            //    new System.EnterpriseServices.Internal.Publish().GacRemove(path);
+            //    Logger.Instance.AdddLog(LogType.Debug, "Unregister in GAC -> Ok!", "DllRegister", "");
+            //    return true;
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.Instance.AdddLog(LogType.Error, "Unregister in GAC?", "DllRegister", "", ex);
+            //    return false;
+            //}
+        }
+
+        public static bool IsAssemblyInGAC(string assemblyFullName, out string path)
+        {
+            path = string.Empty;
+            try
+            {
+                Assembly U = Assembly.LoadFrom(assemblyFullName);                
+                Assembly t = Assembly.LoadWithPartialName(U.FullName);
+                U = null;
+                bool result = t.GlobalAssemblyCache;
+                if (!result) return false;                
+                if (System.IO.File.Exists(t.Location))
+                {
+                    path = t.Location;
+                    t = null;
+                }
+                else
+                {
+                    return false;
+                }                
+                return result;
+            }
+            catch
+            {                
                 return false;
             }
         }
 
-        public static bool IsAssemblyInGAC(string assemblyFullName)
+        public static bool FindInGAC_Reg(string dllName, out string info)
         {
-            try
+            info = string.Empty;
+            RegistryKey t_clsidSubKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Fusion\\GACChangeNotification\\Default");
+            if ((t_clsidSubKey != null))
             {
-                Assembly t = Assembly.ReflectionOnlyLoad(assemblyFullName);
-
-                return t.GlobalAssemblyCache;
+                foreach (string item in t_clsidSubKey.GetValueNames())
+                {
+                    if (item.Contains(dllName))
+                    {
+                        info = item;
+                        string h = t_clsidSubKey.GetValue(item).ToString();                        
+                        return true;
+                    }
+                }
             }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
 
         public static bool IsAssemblyInGAC(Assembly assembly)
