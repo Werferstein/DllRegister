@@ -9,6 +9,7 @@ werferstein.org
 */
 
 using System;
+using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 
@@ -32,6 +33,12 @@ namespace DllRegister
 
             //this.textBoxDescription.Text = AssemblyDescription;
             this.textBoxDescription.Text = Program.ProgramDescription;
+
+            Image bluefrog;
+            if ((bluefrog = DownloadImage(@"https://werferstein.org/bluefrog.png")) != null)
+            {
+                this.logoPictureBox.Image = bluefrog;
+            }
         }
 
         #region Assembly Attribute Accessors
@@ -124,5 +131,49 @@ namespace DllRegister
         {
             System.Diagnostics.Process.Start(@"https://werferstein.org/");
         }
+
+        /// <summary>
+        /// Function to download Image from website
+        /// </summary>
+        /// <param name="_URL">URL address to download image</param>
+        /// <returns>Image</returns>
+        public Image DownloadImage(string _URL)
+        {
+            Image _tmpImage = null;
+
+            try
+            {
+                // Open a connection
+                System.Net.HttpWebRequest _HttpWebRequest = (System.Net.HttpWebRequest)System.Net.HttpWebRequest.Create(_URL);
+
+                _HttpWebRequest.AllowWriteStreamBuffering = true;
+
+                // You can also specify additional header values like the user agent or the referer: (Optional)
+                _HttpWebRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)";
+                _HttpWebRequest.Referer = "http://www.google.com/";
+
+                // set timeout for 20 seconds (Optional)
+                _HttpWebRequest.Timeout = 20000;
+
+                // Request response:
+                System.Net.WebResponse _WebResponse = _HttpWebRequest.GetResponse();
+
+                // Open data stream:
+                System.IO.Stream _WebStream = _WebResponse.GetResponseStream();
+
+                // convert webstream to image
+                _tmpImage = Image.FromStream(_WebStream);
+
+                // Cleanup
+                _WebResponse.Close();
+                _WebResponse.Close();
+            }
+            catch (Exception _Exception)
+            {
+                return null;
+            }
+            return _tmpImage;
+        }
+
     }
 }

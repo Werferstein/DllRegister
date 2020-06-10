@@ -81,7 +81,7 @@ namespace DllRegister
             this.logoPictureBox.BackColor = System.Drawing.Color.White;
             this.logoPictureBox.Cursor = System.Windows.Forms.Cursors.Hand;
             this.logoPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.logoPictureBox.Image = Properties.Resources.bluefrog1;// ((System.Drawing.Image)(resources.GetObject("logoPictureBox.Image")));
+            //this.logoPictureBox.Image = Properties.Resources.bluefrog1;// ((System.Drawing.Image)(resources.GetObject("logoPictureBox.Image")));
             this.logoPictureBox.Location = new System.Drawing.Point(4, 4);
             this.logoPictureBox.Margin = new System.Windows.Forms.Padding(4);
             this.logoPictureBox.Name = "logoPictureBox";
