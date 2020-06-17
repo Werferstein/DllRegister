@@ -490,6 +490,14 @@ namespace DllRegister
             Setting.OutputPath = textBoxOutPath.Text;
             Setting.SaveLogging = saveInstallLogToolStripMenuItem.Checked;
             Setting.ProjectName = textBoxPName.Text;
+            if (comboBoxNetLink.SelectedItem != null)
+            {
+                Setting.RegisterEXE = (comboBoxNetLink.SelectedItem as NetItem).FullPath;
+            }
+            else
+            {
+                throw new FileNotFoundException("RegAsm.exe not found!");
+            }
         }
 
         private void LoadToolStripMenuItem_Click(object sender, EventArgs e)

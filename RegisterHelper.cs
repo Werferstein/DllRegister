@@ -626,17 +626,18 @@ namespace DllRegister
                         error++;
 
                         #region 32bit
+                        RegData newregData;
                         RegistryKey t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("CLSID" + "\\{" + Id + "}\\InProcServer32");
                         if (!string.IsNullOrEmpty(className) &&  t_clsidSubKey != null)
                         {
                             
                             message.AppendLine("--------------------------------------------------------------------------------------------------------");
-                            message.AppendLine("CLSID" + "\\{" + Id + "}\\InProcServer32");
-                            if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\",""), "", out regData, className))
+                            message.AppendLine("CLSID" + "\\{" + Id + "}\\InProcServer32");                            
+                            if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\",""), "", out newregData, className))
                             {
-                                message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + regData.GetInfo + " (Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
+                                message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + newregData.GetInfo + " (Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
 
-                                if (!System.IO.File.Exists(regData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + regData.Path);
+                                if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
                             }
                             message.AppendLine("--------------------------------------------------------------------------------------------------------");
                         } 
@@ -647,11 +648,11 @@ namespace DllRegister
                         {
                             message.AppendLine("--------------------------------------------------------------------------------------------------------");
                             message.AppendLine("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
-                            if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\", ""), "", out regData, className))
+                            if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\", ""), "", out newregData, className))
                             {
-                                message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + regData.GetInfo + " (Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
+                                message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + newregData.GetInfo + " (Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
 
-                                if (!System.IO.File.Exists(regData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + regData.Path);
+                                if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
                             }
                             message.AppendLine("--------------------------------------------------------------------------------------------------------");
                         } 
