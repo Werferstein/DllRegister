@@ -26,7 +26,7 @@ namespace DllRegister
             Codebase = true;
             SaveLogging = false;
             InstallLog = string.Empty;
-            ProjectName = "Register DLL";
+            ProjectName = "RegisterDLL";
         }
         
         
