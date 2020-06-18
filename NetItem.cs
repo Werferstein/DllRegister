@@ -130,9 +130,11 @@ namespace DllRegister
     [Serializable]
     public class FileItem
     {
-        public FileItem() { Name = string.Empty;FullPath = string.Empty; }        
+        public FileItem() { Name = string.Empty;FullPath = string.Empty; RegExe = string.Empty;}        
         [XmlAttribute]
-        public string Name { get; set; }                
+        public string Name { get; set; }
+        [XmlAttribute]
+        public string RegExe { get; set; }
         [XmlAttribute]
         public string FullPath { get; set; }          
         public override string ToString()

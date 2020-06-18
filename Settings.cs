@@ -20,7 +20,7 @@ namespace DllRegister
         {
             MainOptions = new Options();
             FileItems = new List<FileItem>();
-            RegisterEXE = string.Empty;
+            //RegisterEXE = string.Empty;
             BuildRegistryKey = true;
             InstallInGAC = false;
             Codebase = true;
@@ -32,8 +32,8 @@ namespace DllRegister
         
         public Options MainOptions { get; set; }
         public List<FileItem> FileItems { get; set; }
-        [XmlAttribute]
-        public string RegisterEXE { get; set; }
+        //[XmlAttribute]
+        //public string RegisterEXE { get; set; }
         
         [XmlAttribute]
         public bool InstallInGAC{ get; set; }

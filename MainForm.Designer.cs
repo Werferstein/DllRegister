@@ -135,7 +135,7 @@ namespace DllRegister
             this.splitContainer1.Panel2.Controls.Add(this.lbInAdminGroup);
             this.splitContainer1.Panel2.Controls.Add(this.label5);
             this.splitContainer1.Panel2.Controls.Add(this.richTextBox);
-            this.splitContainer1.Size = new System.Drawing.Size(739, 409);
+            this.splitContainer1.Size = new System.Drawing.Size(739, 509);
             this.splitContainer1.SplitterDistance = 226;
             this.splitContainer1.SplitterWidth = 8;
             this.splitContainer1.TabIndex = 0;
@@ -294,6 +294,7 @@ namespace DllRegister
             this.comboBoxNetLink.TabIndex = 5;
             this.comboBoxNetLink.TabStop = false;
             this.comboBoxNetLink.Text = "empty link";
+            this.comboBoxNetLink.SelectedIndexChanged += new System.EventHandler(this.comboBoxNetLink_SelectedIndexChanged);
             this.comboBoxNetLink.MouseHover += new System.EventHandler(this.ComboBoxNetLink_MouseHover);
             // 
             // labelResult
@@ -439,6 +440,7 @@ namespace DllRegister
             this.FileListcomboBox.Sorted = true;
             this.FileListcomboBox.TabIndex = 8;
             this.FileListcomboBox.TabStop = false;
+            this.FileListcomboBox.SelectedIndexChanged += new System.EventHandler(this.FileListcomboBox_SelectedIndexChanged);
             this.FileListcomboBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Button2_MouseDown);
             this.FileListcomboBox.MouseHover += new System.EventHandler(this.FileListcomboBox_MouseHover);
             // 
@@ -584,10 +586,10 @@ namespace DllRegister
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBox.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBox.Location = new System.Drawing.Point(12, 63);
+            this.richTextBox.Location = new System.Drawing.Point(12, 47);
             this.richTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.richTextBox.Name = "richTextBox";
-            this.richTextBox.Size = new System.Drawing.Size(715, 82);
+            this.richTextBox.Size = new System.Drawing.Size(715, 217);
             this.richTextBox.TabIndex = 1;
             this.richTextBox.Text = "";
             // 
@@ -601,8 +603,9 @@ namespace DllRegister
             this.AccessibleRole = System.Windows.Forms.AccessibleRole.Window;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(739, 409);
+            this.ClientSize = new System.Drawing.Size(739, 509);
             this.Controls.Add(this.splitContainer1);
+            this.HelpButton = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);

@@ -78,10 +78,10 @@ namespace DllRegister
         }
 
         private void MainForm_Load(object sender, EventArgs e)
-        {            
+        {
             blockGui = true;
             if (SystemUtil.InternalCheckIsWow64() && !Environment.Is64BitProcess && MessageBox.Show("With a 32bit application no registry entries can be read which refer to 64bit DLLs. Please use a 64bit version of the program." + Environment.NewLine + "Close application?", "The system is 64bit but the running application is 32bit", MessageBoxButtons.OKCancel, MessageBoxIcon.Error) == DialogResult.OK)
-            {                
+            {
                 Application.Exit();
                 this.Close();
                 return;
@@ -94,6 +94,7 @@ namespace DllRegister
             labelResult.BackColor = this.BackColor;
             labelResult.Text = "";
 
+            #region regasm.exe
             // This is the location of the .Net Framework Registry Key
             string framworkRegPath = @"Software\Microsoft\.NetFramework";
             // Get a non-writable key from the registry
@@ -105,7 +106,7 @@ namespace DllRegister
                 framework = Environment.GetEnvironmentVariable("SystemRoot") + "\\Microsoft.NET\\";
                 if (string.IsNullOrEmpty(framework) || !System.IO.Directory.Exists(framework))
                 {
-                    MessageBox.Show("Can`t find regasm.exe?", "EXIT" ,MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Can`t find regasm.exe?", "EXIT", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Application.Exit();
                     return;
                 }
@@ -113,13 +114,13 @@ namespace DllRegister
             if (!framework.EndsWith("\\")) framework += "\\";
             if (framework.ToLower().EndsWith("framework\\")) framework = framework.Replace("Framework\\", "");
             if (framework.ToLower().EndsWith("framework64\\")) framework = framework.Replace("Framework64\\", "");
-            
-                    #region fill combo box regasm.exe
+
+            #region fill combo box regasm.exe
             comboBoxNetLink.Items.Clear();
             comboBoxNetLink.Text = string.Empty;
-            Logger.Instance.AdddLog(LogType.Info, "Search in: "+ framework + " for regasm.exe!", this);
+            Logger.Instance.AdddLog(LogType.Info, "Search in: " + framework + " for regasm.exe!", this);
             string[] files = Directory.GetFiles(framework, "regasm.exe", SearchOption.AllDirectories);
-            Logger.Instance.AdddLog(LogType.Info, "Found " + files.Length.ToString()  + " regasm.exe files.", this);
+            Logger.Instance.AdddLog(LogType.Info, "Found " + files.Length.ToString() + " regasm.exe files.", this);
 
             if (files != null && files.Length > 0)
             {
@@ -142,50 +143,18 @@ namespace DllRegister
                         comboBoxNetLink.Text = y.Name;
                     }
                 }
-                if (!string.IsNullOrWhiteSpace(Setting.RegisterEXE) && System.IO.File.Exists(Setting.RegisterEXE))
-                {
-                    bool found = false;
-                    foreach (var item in comboBoxNetLink.Items)
-                    {
-                        if ((item as NetItem).FullPath.ToLower() == Setting.RegisterEXE.ToLower())
-                        {
-                            comboBoxNetLink.SelectedItem = item;
-                            found = true;
-                            break;
-                        }
-
-                    }
-                    if (!found)
-                    {
-                        NetItem ni = new NetItem() { FullPath = Setting.RegisterEXE };
-                        comboBoxNetLink.Items.Add(ni);
-                        comboBoxNetLink.SelectedItem = ni;
-                    }
-                }
             }
             #endregion
 
-            #region fill combo box DLLs            
-            FileListcomboBox.Items.Clear();
-            FileListcomboBox.Text = string.Empty;
 
-            if (Setting.FileItems != null && Setting.FileItems.Count > 0)
-            {
-                Setting.FileItems = Setting.FileItems.GroupBy(x => x).Select(y => y.First()).ToList();
-                foreach (var item in Setting.FileItems)
-                {
-                    if (!string.IsNullOrWhiteSpace(item.FullPath))
-                    {
-                        FileListcomboBox.Items.Add(item);
-                        FileListcomboBox.SelectedItem = item;
-                        lastPath = item.FullPath;
-                    }
-                }
-                labelCount.Text = FileListcomboBox.Items.Count.ToString() + " Files";
-            }
+
+
+
 
 
             #endregion
+
+            LoadDllFileItems();
 
             checkBoxInstallinGAC.Checked = Setting.InstallInGAC;
             checkBoxRegistry.Checked = Setting.BuildRegistryKey;
@@ -196,6 +165,73 @@ namespace DllRegister
 
             blockGui = false;
         }
+
+        private void LoadDllFileItems( )
+        {
+            #region fill combo box DLLs            
+            FileListcomboBox.Items.Clear();
+            FileListcomboBox.Text = string.Empty;
+
+            if (Setting.FileItems != null && Setting.FileItems.Count > 0)
+            {
+                Setting.FileItems = Setting.FileItems.GroupBy(x => new { x.FullPath, x.Name, x.RegExe }).Select(g => g.First()).ToList();
+ 
+
+                foreach (var item in Setting.FileItems)
+                {
+                    if (!string.IsNullOrWhiteSpace(item.FullPath))
+                    {
+                        FileListcomboBox.Items.Add(item);
+                        FileListcomboBox.SelectedItem = item;
+                        if (!string.IsNullOrWhiteSpace(item.RegExe))
+                        {
+                            SetRegExe(item.RegExe);
+                            comboBoxNetLink.BackColor = SystemColors.Control;
+                        }
+                        else
+                        {
+                            comboBoxNetLink.Text = string.Empty;
+                            comboBoxNetLink.BackColor = Color.Red;
+                        }
+                        lastPath = item.FullPath;
+                    }
+                }
+                labelCount.Text = FileListcomboBox.Items.Count.ToString() + " Files";
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// Select item in comboBoxNetLink
+        /// </summary>
+        /// <param name="regExePath"></param>
+        private void SetRegExe (string regExePath)
+        {
+            if (!string.IsNullOrWhiteSpace(regExePath) && System.IO.File.Exists(regExePath))
+            {
+                bool found = false;
+                blockGui = true;
+                foreach (var item in comboBoxNetLink.Items)
+                {
+                    if ((item as NetItem).FullPath.ToLower() == regExePath.ToLower())
+                    {                        
+                        comboBoxNetLink.SelectedItem = item;
+                        comboBoxNetLink.Text = (item as NetItem).Name;
+                        found = true;                        
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    NetItem ni = new NetItem() { FullPath = regExePath };
+                    comboBoxNetLink.Items.Add(ni);
+                    comboBoxNetLink.SelectedItem = ni;
+                    comboBoxNetLink.Text = ni.FullPath;
+                }
+                blockGui = false;
+            }
+        }
+
 
         #region AddLog
         private void Instance_OnLogMessage(object sender, LogMessageInfoEventArgs e)
@@ -466,17 +502,6 @@ namespace DllRegister
 
             if (dialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.FileName))
             {
-                if (comboBoxNetLink.SelectedItem != null)
-                {
-                    if (System.IO.File.Exists((comboBoxNetLink.SelectedItem as NetItem).FullPath))
-                    {
-                        Setting.RegisterEXE = (comboBoxNetLink.SelectedItem as NetItem).FullPath;
-                    }
-                    else
-                    {
-                        Setting.RegisterEXE = string.Empty;
-                    }
-                }
                 Setting.MainOptions.OptionPath = dialog.FileName;
                 Setting.Save(dialog.FileName);
             }
@@ -490,14 +515,6 @@ namespace DllRegister
             Setting.OutputPath = textBoxOutPath.Text;
             Setting.SaveLogging = saveInstallLogToolStripMenuItem.Checked;
             Setting.ProjectName = textBoxPName.Text;
-            if (comboBoxNetLink.SelectedItem != null)
-            {
-                Setting.RegisterEXE = (comboBoxNetLink.SelectedItem as NetItem).FullPath;
-            }
-            else
-            {
-                throw new FileNotFoundException("RegAsm.exe not found!");
-            }
         }
 
         private void LoadToolStripMenuItem_Click(object sender, EventArgs e)
@@ -528,9 +545,16 @@ namespace DllRegister
         {
             string path = Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
 
-            if (string.IsNullOrWhiteSpace(lastPath) && System.IO.Directory.Exists(lastPath))
+            if (!string.IsNullOrWhiteSpace(lastPath) && (System.IO.File.Exists(lastPath) || System.IO.Directory.Exists(lastPath)))
             {
-                path = lastPath;
+                if (lastPath.ToLower().EndsWith("dll"))
+                {
+                    path = System.IO.Path.GetDirectoryName(lastPath);
+                }
+                else
+                {
+                    path = lastPath;
+                }
             }
             else
             if (!string.IsNullOrWhiteSpace(FileListcomboBox.Text) && System.IO.File.Exists(FileListcomboBox.Text))
@@ -540,7 +564,7 @@ namespace DllRegister
 
             OpenFileDialog dialog = new OpenFileDialog
             {
-                Filter = "dll files (*.dll)|*.DLL|All files (*.*)|*.*",
+                Filter = "dll files (*.dll)|*.DLL|All files (*.*)|*.*",                
                 InitialDirectory = path,
                 Title = "Please select all dlls to register!",
                 Multiselect = true
@@ -548,30 +572,32 @@ namespace DllRegister
 
             if (dialog.ShowDialog() == DialogResult.OK && dialog.FileNames.Length > 0)
             {
-                bool add = false;
+                //bool add = false;
                 foreach (string item in dialog.FileNames)
                 {
-                    if (Setting.FileItems.FirstOrDefault(r => r.FullPath == item) == null)
+                    //    if (Setting.FileItems.FirstOrDefault(r => r.FullPath == item) == null)
+                    //    {
+                    FileItem fileItem = new FileItem()
                     {
-                        Setting.FileItems.Add(new FileItem() { FullPath = item, Name = System.IO.Path.GetFileName(item) });
-                        add = true;
-                    }
+                        FullPath = item,
+                        Name = System.IO.Path.GetFileName(item),
+                        RegExe = comboBoxNetLink.SelectedItem != null ? (comboBoxNetLink.SelectedItem as NetItem).FullPath : string.Empty
+                    };
+                    Setting.FileItems.Add(new FileItem() { FullPath = item, Name = System.IO.Path.GetFileName(item) });                    
                     lastPath = item;
                 }
-                if (add)
-                {
+                    
+                //}
+                //if (add)
+                //{
                     timeId = DateTime.Now.ToString("ddMMyyHHmmssfff");
-                    FileListcomboBox.Items.Clear();
-                    foreach (var item in Setting.FileItems)
-                    {
-                        FileListcomboBox.Items.Add(item);
-                        FileListcomboBox.SelectedItem = item;
-                        if (string.IsNullOrWhiteSpace(textBoxPName.Text) && !string.IsNullOrWhiteSpace(item.FullPath)) textBoxPName.Text = "Register_" + System.IO.Path.GetFileNameWithoutExtension(item.FullPath);
-                    }
-                    if (FileListcomboBox.SelectedItem is FileItem lastItem) FileListcomboBox.SelectedItem = lastItem;
-                }
 
-                labelCount.Text = FileListcomboBox.Items.Count.ToString() + " Files";
+                FileItem lastItem = (FileListcomboBox.SelectedItem as FileItem);
+                LoadDllFileItems();
+                if (lastItem != null)
+                {
+                    FileListcomboBox.SelectedItem = lastItem;
+                }
             }
         }
         #endregion
@@ -665,6 +691,7 @@ namespace DllRegister
                 return;
             }
             Cursor.Current = Cursors.WaitCursor;
+            Setting.FileItems = Setting.FileItems.GroupBy(x => new { x.FullPath, x.Name, x.RegExe }).Select(g => g.First()).ToList();
             foreach (var FileItem in Setting.FileItems)
             {
                 if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
@@ -846,9 +873,40 @@ namespace DllRegister
             textBoxPName.Text = rgx.Replace(textBoxPName.Text, "");
             blockGui = false;
         }
+
+
         #endregion
 
+        private void comboBoxNetLink_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (blockGui) return;
+            if (FileListcomboBox.SelectedItem != null && comboBoxNetLink.SelectedItem != null)
+            {
+                blockGui = true;
+                (FileListcomboBox.SelectedItem as FileItem).RegExe = (comboBoxNetLink.SelectedItem as NetItem).FullPath;
+                comboBoxNetLink.BackColor = SystemColors.Control;
+                blockGui = false;
+            }
+        }
 
-
+        private void FileListcomboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (blockGui) return;
+            if (FileListcomboBox.SelectedItem != null && comboBoxNetLink.SelectedItem != null)
+            {
+                blockGui = true;
+                if (!string.IsNullOrWhiteSpace((FileListcomboBox.SelectedItem as FileItem).RegExe))
+                {
+                    SetRegExe((FileListcomboBox.SelectedItem as FileItem).RegExe);
+                    comboBoxNetLink.BackColor = SystemColors.Control;
+                }
+                else
+                {
+                    comboBoxNetLink.Text = string.Empty;
+                    comboBoxNetLink.BackColor = Color.Red;
+                }
+                blockGui = false;
+            }
+        }
     }
 }

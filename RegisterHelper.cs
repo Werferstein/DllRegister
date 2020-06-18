@@ -13,6 +13,7 @@ using SLogging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -104,7 +105,7 @@ namespace DllRegister
         public static bool Register(Settings setting, string timeId)
         //(string outpath, string dllpath, string regasmPath,  bool setting.InstallInGAC, bool buildRegfile, bool codebase,string time, out string registryCode )
         {
-            if (setting == null || setting.FileItems == null || setting.FileItems.Count == 0 || string.IsNullOrWhiteSpace(setting.RegisterEXE))
+            if (setting == null || setting.FileItems == null || setting.FileItems.Count == 0)
             {
                 Logger.Instance.AdddLog(LogType.Error, "Missing values in setting!", "DllRegister", "");
                 return false;
@@ -137,8 +138,8 @@ namespace DllRegister
                 IsCopied = true;
             }
 
-
-
+            //group by!
+            setting.FileItems = setting.FileItems.GroupBy(x => new { x.FullPath, x.Name, x.RegExe }).Select(g => g.First()).ToList();
             string registryCode = string.Empty;
             foreach (var FileItem in setting.FileItems)
             {
@@ -152,6 +153,13 @@ namespace DllRegister
 
                 #region file item test                
                 if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
+                if (string.IsNullOrWhiteSpace(FileItem.RegExe) || !System.IO.File.Exists(FileItem.RegExe))
+                {
+                    Logger.Instance.AdddLog(LogType.Error, FileItem.RegExe + " -> File not exist! " + FileItem.FullPath);
+                    error = true;
+                    continue;
+                }
+
                 if (!System.IO.File.Exists(FileItem.FullPath))
                 {
                     Logger.Instance.AdddLog(LogType.Error, "File not exist! " + FileItem.FullPath);
@@ -167,7 +175,7 @@ namespace DllRegister
                         #region UnRegister ?
                         if (!setting.BuildRegistryKey && DllRegister.IsRegistered(out bool bit64, out bool gac, FileItem.FullPath, true, setting.OutputPath, timeId))
                         {
-                            if (!UnRegister(FileItem.FullPath, setting.RegisterEXE, setting.OutputPath, timeId, setting.InstallInGAC))
+                            if (!UnRegister(FileItem.FullPath, FileItem.RegExe, setting.OutputPath, timeId, setting.InstallInGAC))
                             {
                                 Logger.Instance.AdddLog(LogType.Error, "The already registered Dll cannot be unregistered! --> exit " + FileItem.FullPath, "DllRegister", "");
                                 error = true;
@@ -253,7 +261,7 @@ namespace DllRegister
 
                         #region Build RegFile
                         if (System.IO.File.Exists(BaseBackupPath + fileName + ".reg")) System.IO.File.Delete(BaseBackupPath + fileName + ".reg");
-                        if (!ExecProcess(argumentsReg, setting.RegisterEXE, path) || !System.IO.File.Exists(BaseBackupPath + fileName + ".reg"))
+                        if (!ExecProcess(argumentsReg, FileItem.RegExe, path) || !System.IO.File.Exists(BaseBackupPath + fileName + ".reg"))
                         {
                             Logger.Instance.AdddLog(LogType.Error, "Could not create registry data ! --> exit (" + FileItem.FullPath + ")");
                             error = true;
@@ -268,7 +276,7 @@ namespace DllRegister
                         {
                             //delete old result
                             if (System.IO.File.Exists(tlbPath)) System.IO.File.Delete(tlbPath);
-                            if (!ExecProcess(arguments, setting.RegisterEXE, path) || !System.IO.File.Exists(tlbPath))
+                            if (!ExecProcess(arguments, FileItem.RegExe, path) || !System.IO.File.Exists(tlbPath))
                             {
                                 //error
                                 Logger.Instance.AdddLog(LogType.Error, "Could not register dll! --> exit (" + FileItem.FullPath + ")");
@@ -341,7 +349,7 @@ namespace DllRegister
 
         public static bool UnRegister(Settings setting, string timeId)
         {
-            if (setting == null || setting.FileItems == null || string.IsNullOrWhiteSpace(setting.RegisterEXE)) throw new Exception("Missing values in Setting!");
+            if (setting == null || setting.FileItems == null) throw new Exception("Missing values in Setting!");
             int regCount = 0;
             bool error = false;
             bool IsCopied = false;
@@ -366,7 +374,9 @@ namespace DllRegister
             //    IsCopied = true;
             //}
 
-      
+            //group by!
+            setting.FileItems = setting.FileItems.GroupBy(x => new { x.FullPath, x.Name, x.RegExe }).Select(g => g.First()).ToList();
+
             foreach (var FileItem in setting.FileItems)
             {
                 if (setting.FileItems.Count > 1)
@@ -376,7 +386,14 @@ namespace DllRegister
                 }
 
                 #region file item test                
-                if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
+                //if (string.IsNullOrWhiteSpace(FileItem.FullPath)) continue;
+
+                if (string.IsNullOrWhiteSpace(FileItem.RegExe) || !System.IO.File.Exists(FileItem.RegExe))
+                {
+                    Logger.Instance.AdddLog(LogType.Error, FileItem.RegExe + " -> File not exist! " + FileItem.FullPath);
+                    continue;
+                }
+
                 if (!System.IO.File.Exists(FileItem.FullPath))
                 {
                     Logger.Instance.AdddLog(LogType.Error, "File not exist! " + FileItem.FullPath);
@@ -384,7 +401,7 @@ namespace DllRegister
                 #endregion
 
                 //UnRegister
-                if (!UnRegister(FileItem.FullPath, setting.RegisterEXE, setting.OutputPath, timeId, setting.InstallInGAC))
+                if (!UnRegister(FileItem.FullPath, FileItem.RegExe, setting.OutputPath, timeId, setting.InstallInGAC))
                 {
                     Logger.Instance.AdddLog(LogType.Error, "Unregister ERROR! " + FileItem.FullPath, "DllRegister", "");
                     error = true;
