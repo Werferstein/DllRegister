@@ -23,6 +23,8 @@ namespace DllRegister
             RuntimeVersion = string.Empty;
             ThreadingModel = string.Empty;
             CLSID = string.Empty;
+            RegistryPath = string.Empty;
+            Error = string.Empty;
         }
 
         [XmlAttribute]
@@ -44,6 +46,10 @@ namespace DllRegister
                 {
                     Path = string.Empty;
                 }
+                if (!string.IsNullOrWhiteSpace(Path) && !System.IO.File.Exists(Path))
+                {
+                    Error += "File not found ! Path: " + Path + Environment.NewLine;
+                } 
                 codeBase = value;
             }
         }
@@ -54,6 +60,11 @@ namespace DllRegister
         public string RuntimeVersion { get; set; }
         [XmlAttribute]
         public string ThreadingModel { get; set; }
+        [XmlAttribute]
+        public string RegistryPath { get; set; }
+        [XmlAttribute]
+        public string Error { get; set; }
+
 
         private string clsid;
         [XmlAttribute]

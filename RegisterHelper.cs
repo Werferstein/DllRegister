@@ -551,7 +551,8 @@ namespace DllRegister
             gac = false;
             bit64 = false;
             int error = 0;
-
+            bool diff64 = false;
+            bool diff32 = false;
 
             StringBuilder message = new StringBuilder();
             message.AppendLine();
@@ -570,114 +571,154 @@ namespace DllRegister
             }
             #endregion
 
-            #region main 32bit & 64bit
-            string regKey = string.Empty;
-
-
-            RegData regData;
-            if ((regKey = SearchRegistryNative(System.IO.Path.GetFileName(path),"CLSID", out regData)) == string.Empty)
+            #region main 32bit & 64bit            
+            List<RegData> regData = SearchRegistryNative(System.IO.Path.GetFileName(path), "CLSID", true);
+            if (regData == null|| regData.Count == 0 )
             {
                 message.AppendLine(@"No CLSID fond in CLASSES_ROOT\CLSID (for DLLs 32bit) ! " + System.IO.Path.GetFileName(path));
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(regData.Path) && path.ToUpper() != regData.Path.ToUpper())
+                foreach (RegData item in regData)
                 {
-                    message.AppendLine(@"ERROR| The DLL path found in the registry differs from the new path to DLL");
-                    message.AppendLine(@"DLL path: " + path);
-                    message.AppendLine(@"new path: " + regData.Path);
-                    if (correct &&
-                        MessageBox.Show("The DLL path found in the registry differs from the new path to DLL. Should this path be corrected?" + Environment.NewLine + regKey, "Should this path be corrected", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                    string tempCLSID = string.Empty;
+
+                    #region differ in path
+                    if (!string.IsNullOrWhiteSpace(item.Path) && path.ToUpper() != item.Path.ToUpper())
                     {
-                        Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
-                        UnRegister(regData.Path, RegasmPath, outPath, time);
-                        CleanReg(regData.CLSID, regData.Path);
-                        return true;
-                    }
-                }
+                        message.AppendLine(@"ERROR| The DLL path found in the registry differs from the new path to DLL");
+                        message.AppendLine(@"DLL path: " + path);
+                        message.AppendLine(@"new path: " + item.Path);
+                        if (correct &&
+                            MessageBox.Show("The DLL path found in the registry differs from the new path to DLL. Should this path be corrected?" + Environment.NewLine + item.ToString(), "Should this path be corrected", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                        {
+                            Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
+                            UnRegister(item.Path, RegasmPath, outPath, time);
+                            CleanReg(item.CLSID, item.Path);
+                            return true;
+                        }
+                    } 
+                    #endregion
+
+                    #region differ in CLSID
+                    if (!string.IsNullOrWhiteSpace(regData.ToString()) && string.IsNullOrWhiteSpace(tempCLSID)) tempCLSID = regData.ToString();
+                    if (!string.IsNullOrWhiteSpace(tempCLSID) &&
+                        !string.IsNullOrWhiteSpace(regData.ToString()) &&
+                        tempCLSID != regData.ToString())                        
+                    {
+                        message.AppendLine(@"ERROR| Found different CLSIDs in registry! (CLSID)");
+                        diff32 = true;
+                    } 
+                    #endregion
+                } 
             }
             #endregion
 
             #region 64bit
-            RegData regData64;
-            if ((regKey = SearchRegistryNative(System.IO.Path.GetFileName(path), "Wow6432Node\\CLSID", out regData64)) == string.Empty)
+            List<RegData> regData64 = SearchRegistryNative(System.IO.Path.GetFileName(path), "Wow6432Node\\CLSID",true);
+            
+            if (regData64 == null || regData64.Count == 0)
             {
                 message.AppendLine(@"No CLSID fond in CLASSES_ROOT\Wow6432Node\CLSID (for DLLs 64bit) ! " + System.IO.Path.GetFileName(path));
             }
             else
             {
-                bit64 = true;
-                if (!string.IsNullOrWhiteSpace(regData64.Path) &&  path.ToUpper() != regData64.Path.ToUpper())
+                foreach (RegData item64 in regData64)
                 {
-                    message.AppendLine(@"ERROR| The DLL path found in the registry (Wow6432Node) differs from the new path to DLL:");
-                    message.AppendLine(@"DLL path: " + path);
-                    message.AppendLine(@"new path: " + regData64.Path);
-                    if (correct &&
-                        MessageBox.Show("The DLL path found in the registry (Wow6432Node) differs from the new path to DLL. Should this path be corrected?" + Environment.NewLine + regKey, "Should this path be corrected", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                    bit64 = true;
+                    string tempCLSID = string.Empty;
+
+                    #region differ in path
+                    if (!string.IsNullOrWhiteSpace(item64.Path) && path.ToUpper() != item64.Path.ToUpper())
                     {
-                        Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
-                        UnRegister(regData64.Path, RegasmPath, outPath, time);
-                        CleanReg(regData64.CLSID, regData64.Path);
-                        return true;
-                    }
+                        message.AppendLine(@"ERROR| The DLL path found in the registry (Wow6432Node) differs from the new path to DLL:");
+                        message.AppendLine(@"DLL path: " + path);
+                        message.AppendLine(@"new path: " + item64.Path);
+                        if (correct &&
+                            MessageBox.Show("The DLL path found in the registry (Wow6432Node) differs from the new path to DLL. Should this path be corrected?" + Environment.NewLine + item64.ToString(), "Should this path be corrected", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                        {
+                            Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
+                            UnRegister(item64.Path, RegasmPath, outPath, time);
+                            CleanReg(item64.CLSID, item64.Path);
+                            return true;
+                        }
+                    } 
+                    #endregion
+
+                    #region differ in CLSID
+                    if (!string.IsNullOrWhiteSpace(regData64.ToString()) && string.IsNullOrWhiteSpace(tempCLSID)) tempCLSID = regData64.ToString();
+                    if (!string.IsNullOrWhiteSpace(tempCLSID) &&
+                        !string.IsNullOrWhiteSpace(regData64.ToString()) &&
+                         tempCLSID != regData64.ToString())
+                    {
+                        message.AppendLine(@"ERROR| Found different CLSIDs in registry! (Wow6432Node)");
+                        diff32 = true;
+                    } 
+                    #endregion
                 }
             }
             #endregion
 
 
-            if (regData != null && !string.IsNullOrWhiteSpace(regData.Class))
+            if (regData != null && regData.Count > 0)
             {
-                message.Append(@"Search in root for: " + regData.Class + " ->");
-                string Id = GetCLSIDFromClassName(regData.Class, regData.CLSID, out int tempError);
-                error += tempError;
-                if (Id != string.Empty)
+                foreach (var regItem in regData)
                 {
-                    if (Id == regData.CLSID)
+                    if (!string.IsNullOrWhiteSpace(regItem.Class))
                     {
-                        message.AppendLine(@" Found!");
-                    }
-                    else
-                    {
-                        message.AppendLine(@"ERROR| Found class name in root but CLSID is different !" + Environment.NewLine + 
-                            "CLSID    : " + regData.CLSID + Environment.NewLine +
-                            "new CLSID: " + Id);
-                        string className = regData.Class;
-                        error++;
-
-                        #region 32bit
-                        RegData newregData;
-                        RegistryKey t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("CLSID" + "\\{" + Id + "}\\InProcServer32");
-                        if (!string.IsNullOrEmpty(className) &&  t_clsidSubKey != null)
+                        message.Append(@"Search in root for: " + regItem.Class + " ->");
+                        string Id = GetCLSIDFromClassName(regItem.Class, regItem.CLSID, out int tempError);
+                        error += tempError;
+                        if (Id != string.Empty)
                         {
-                            
-                            message.AppendLine("--------------------------------------------------------------------------------------------------------");
-                            message.AppendLine("CLSID" + "\\{" + Id + "}\\InProcServer32");                            
-                            if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\",""), "", out newregData, className))
+                            if (Id == regItem.CLSID)
                             {
-                                message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + newregData.GetInfo + Environment.NewLine + "(Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
-
-                                if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
+                                message.AppendLine(@" Found!");
                             }
-                            message.AppendLine("--------------------------------------------------------------------------------------------------------");
-                        } 
-                        #endregion
-                        #region 64bit
-                        t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
-                        if (!string.IsNullOrEmpty(className) && t_clsidSubKey != null)
-                        {
-                            message.AppendLine("--------------------------------------------------------------------------------------------------------");
-                            message.AppendLine("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
-                            if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\", ""), "", out newregData, className))
+                            else
                             {
-                                message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + newregData.GetInfo + Environment.NewLine + "(Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
+                                message.AppendLine(@"ERROR| Found class name in root but CLSID is different !" + Environment.NewLine +
+                                    "CLSID    : " + regItem.CLSID + Environment.NewLine +
+                                    "new CLSID: " + Id);
+                                string className = regItem.Class;
+                                error++;
 
-                                if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
+                                #region 32bit
+                                RegData newregData;
+                                RegistryKey t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("CLSID" + "\\{" + Id + "}\\InProcServer32");
+                                if (!string.IsNullOrEmpty(className) && t_clsidSubKey != null)
+                                {
+
+                                    message.AppendLine("--------------------------------------------------------------------------------------------------------");
+                                    message.AppendLine("CLSID" + "\\{" + Id + "}\\InProcServer32");
+                                    if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\", ""), "", out newregData, className))
+                                    {
+                                        message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + newregData.GetInfo + Environment.NewLine + "(Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
+
+                                        if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
+                                    }
+                                    message.AppendLine("--------------------------------------------------------------------------------------------------------");
+                                }
+                                #endregion
+                                #region 64bit
+                                t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
+                                if (!string.IsNullOrEmpty(className) && t_clsidSubKey != null)
+                                {
+                                    message.AppendLine("--------------------------------------------------------------------------------------------------------");
+                                    message.AppendLine("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
+                                    if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\", ""), "", out newregData, className))
+                                    {
+                                        message.AppendLine("Found ->" + Environment.NewLine + "Registry:       " + t_clsidSubKey.Name + Environment.NewLine + newregData.GetInfo + Environment.NewLine + "(Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")");
+
+                                        if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
+                                    }
+                                    message.AppendLine("--------------------------------------------------------------------------------------------------------");
+                                }
+                                #endregion
                             }
-                            message.AppendLine("--------------------------------------------------------------------------------------------------------");
-                        } 
-                        #endregion
+                        }
                     }
-                }
+                }                                
             }
             else
             {
@@ -689,29 +730,30 @@ namespace DllRegister
 
 
 
-            if (regData != null && regData64 != null)
+            if (regData != null && regData64 != null && regData.Count > 0 && regData64.Count > 0 && diff32 == false && diff64 == false)
             {
-                if (!string.IsNullOrEmpty(regData.CLSID) && !string.IsNullOrEmpty(regData64.CLSID) &&
-                    regData.CLSID != regData64.CLSID)
+
+                if (!string.IsNullOrEmpty(regData[0].CLSID) &&
+                    !string.IsNullOrEmpty(regData64[0].CLSID) &&
+                    regData[0].CLSID != regData64[0].CLSID)
                 {
                     message.AppendLine("ERROR| The CLSID is different from Wow6432Node:");
-                    message.AppendLine("in CLSID      : " + regData.CLSID);
-                    message.AppendLine("in Wow6432Node: " + regData64.CLSID);
+                    message.AppendLine("in CLSID      : " + regData[0].CLSID);
+                    message.AppendLine("in Wow6432Node: " + regData64[0].CLSID);
                     error++;
                 }
 
-
-            if (!string.IsNullOrEmpty(regData.Path) && !string.IsNullOrEmpty(regData64.Path) &&
-                 regData.Path.ToLower() != regData64.Path.ToLower())
-            {
+                if (!string.IsNullOrEmpty(regData[0].Path) && !string.IsNullOrEmpty(regData64[0].Path) &&
+                     regData[0].Path.ToLower() != regData64[0].Path.ToLower())
+                {
                     message.AppendLine("ERROR| The CLSID path is different from Wow6432Node path:");
-                    message.AppendLine("in CLSID      : " + regData.Path);
-                    message.AppendLine("in Wow6432Node: " + regData64.Path);
+                    message.AppendLine("in CLSID      : " + regData[0].Path);
+                    message.AppendLine("in Wow6432Node: " + regData64[0].Path);
                     error++;
                 }
             }
 
-            message.AppendLine("The CLSID " + regData.CLSID + " was found in the registry!");
+            //message.AppendLine("The CLSID " + regData.CLSID + " was found in the registry!");
             Logger.Instance.AdddLog(LogType.Info, message.ToString(), "DllRegister");
             if (error > 0)Logger.Instance.AdddLog(LogType.Error, "ERROR| Check the log file (" + error.ToString() + " errors)!", "DllRegister");            
             return true;
@@ -820,52 +862,89 @@ namespace DllRegister
 
         #region SearchRegistryNative
 
-        /// <summary>
-        /// Search and Find Registry Function
-        /// </summary>
-        /// <param name="dllName"></param>
-        /// <param name="CLSID"></param>
-        /// <param name="path">filepath</param>
-        /// <param name="root">Start point in reg</param>
-        /// <returns></returns>
-        public static string SearchRegistryNative(string dllName, string root, out RegData regData)
+        ///// <summary>
+        ///// Search and Find Registry Function
+        ///// </summary>
+        ///// <param name="dllName"></param>
+        ///// <param name="CLSID"></param>
+        ///// <param name="path">filepath</param>
+        ///// <param name="root">Start point in reg</param>
+        ///// <returns></returns>
+        //public static string SearchRegistryNative(string dllName, string root, out RegData regData)
+        //{
+        //    regData = null;
+        //    if (string.IsNullOrWhiteSpace(dllName) || !dllName.ToLower().EndsWith(".dll")) return string.Empty;
+        //    SearchInValues = 0;
+        //    SearchKeys = 0;
+
+        //    //Registry.ClassesRoot.DeleteSubKeyTree("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}");
+        //    //Registry.ClassesRoot.CreateSubKey("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}\\InProcServer32");
+
+        //    //RegistryKey t_ = Registry.ClassesRoot.OpenSubKey("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}\\InProcServer32");
+        //    //Registry.SetValue(t_.Name,"", @"E:\Nextcloud\Projekt\C#\Register DLL\DLL Temlate\BluefrogLibrary\bin\Releas\BluefrogLibary.dll", RegistryValueKind.String);
+        //    //RegistryKey t_test = Registry.ClassesRoot.OpenSubKey("CLSID\\{7875D9D8-1B94-4AE4-A8F0-63B3F8609336}", System.Security.AccessControl.RegistryRights.FullControl);
+
+        //    //Open the HKEY_CLASSES_ROOT\CLSID which contains the list of all registered COM files (.ocx,.dll, .ax) 
+        //    //on the system no matters if is 32 or 64 bits.
+        //    RegistryKey t_clsidKey = Registry.ClassesRoot.OpenSubKey(root);
+            
+           
+
+        //    //Get all the sub keys it contains, wich are the generated GUID of each COM.            
+        //    foreach (string subKeyName in t_clsidKey.GetSubKeyNames())
+        //    {
+        //        //For each CLSID\GUID key we get the InProcServer32 sub-key .
+        //        string regPath = root + "\\" + subKeyName + "\\InProcServer32";
+        //        if (SearchValueRegistryNative(subKeyName, regPath, dllName, out regData))
+        //        {                         
+        //            Logger.Instance.AdddLog(LogType.Info, "Found ->" + Environment.NewLine + "Registry:       " + regPath + Environment.NewLine +  regData.GetInfo + Environment.NewLine + "(Keys: "  + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")" + Environment.NewLine , "DllRegister", "");
+
+        //            if (!System.IO.File.Exists(regData.Path)) Logger.Instance.AdddLog(LogType.Error, "File not found Path from RegKey-> (" + root + "\\" + regData.CLSID + ") Path: " + regData.Path, "DllRegister", "");
+        //            return regPath;
+        //        }
+        //    }
+
+        //    //if not exist, return nothing
+        //    Logger.Instance.AdddLog(LogType.Error, "Not found in Keys (" + root + "): " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString(), "DllRegister", "");
+        //    return string.Empty;
+        //}
+
+        public static List<RegData> SearchRegistryNative(string dllName, string root, bool allKeys = false)
         {
-            regData = null;
-            if (string.IsNullOrWhiteSpace(dllName) || !dllName.ToLower().EndsWith(".dll")) return string.Empty;
+            List<RegData> regData = null;
+            if (string.IsNullOrWhiteSpace(dllName) || !dllName.ToLower().EndsWith(".dll")) return regData;
+            
             SearchInValues = 0;
             SearchKeys = 0;
-
-            //Registry.ClassesRoot.DeleteSubKeyTree("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}");
-            //Registry.ClassesRoot.CreateSubKey("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}\\InProcServer32");
-
-            //RegistryKey t_ = Registry.ClassesRoot.OpenSubKey("CLSID\\{88ABA9D3-5980-4A42-871E-fAB235F8A7CD}\\InProcServer32");
-            //Registry.SetValue(t_.Name,"", @"E:\Nextcloud\Projekt\C#\Register DLL\DLL Temlate\BluefrogLibrary\bin\Releas\BluefrogLibary.dll", RegistryValueKind.String);
-            //RegistryKey t_test = Registry.ClassesRoot.OpenSubKey("CLSID\\{7875D9D8-1B94-4AE4-A8F0-63B3F8609336}", System.Security.AccessControl.RegistryRights.FullControl);
-
+            int count = 0;
             //Open the HKEY_CLASSES_ROOT\CLSID which contains the list of all registered COM files (.ocx,.dll, .ax) 
             //on the system no matters if is 32 or 64 bits.
             RegistryKey t_clsidKey = Registry.ClassesRoot.OpenSubKey(root);
-            
-           
+
+
 
             //Get all the sub keys it contains, wich are the generated GUID of each COM.            
             foreach (string subKeyName in t_clsidKey.GetSubKeyNames())
             {
                 //For each CLSID\GUID key we get the InProcServer32 sub-key .
                 string regPath = root + "\\" + subKeyName + "\\InProcServer32";
-                if (SearchValueRegistryNative(subKeyName, regPath, dllName, out regData))
-                {                         
-                    Logger.Instance.AdddLog(LogType.Info, "Found ->" + Environment.NewLine + "Registry:       " + regPath + Environment.NewLine +  regData.GetInfo + Environment.NewLine + "(Keys: "  + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")" + Environment.NewLine , "DllRegister", "");
-
-                    if (!System.IO.File.Exists(regData.Path)) Logger.Instance.AdddLog(LogType.Error, "File not found Path from RegKey-> (" + root + "\\" + regData.CLSID + ") Path: " + regData.Path, "DllRegister", "");
-                    return regPath;
+                 
+                if (SearchValueRegistryNative(subKeyName, regPath, dllName, out RegData newValue))
+                {
+                    count++;
+                    if (regData == null) regData = new List<RegData>();                    
+                    Logger.Instance.AdddLog(LogType.Info, "Found ->" + Environment.NewLine + "Registry:       " + regPath + Environment.NewLine + newValue.GetInfo + Environment.NewLine + "(Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")" + Environment.NewLine, "DllRegister", "");                                        
+                    if (!System.IO.File.Exists(newValue.Path)) Logger.Instance.AdddLog(LogType.Error, "File not found Path from RegKey-> (" + root + "\\" + newValue.CLSID + ") Path: " + newValue.Path, "DllRegister", "");                    
+                    regData.Add(newValue);                    
+                    if (!allKeys) return regData;
                 }
-            }
-
-            //if not exist, return nothing
-            Logger.Instance.AdddLog(LogType.Error, "Not found in Keys (" + root + "): " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString(), "DllRegister", "");
-            return string.Empty;
+            }            
+            if(count==0)
+                Logger.Instance.AdddLog(LogType.Error, "Not found in Keys (" + root + "): " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString(), "DllRegister", "");
+            return regData;
         }
+
+
 
         private static int SearchInValues = 0;
         private static int SearchKeys = 0;
@@ -915,9 +994,13 @@ namespace DllRegister
                             }
                         } 
                         #endregion
-                    }                 
+                    }                    
                 }
-                if (foundDllName) return true;
+                if (foundDllName)
+                {
+                    regData.RegistryPath = regPath;
+                    return true;
+                }
             }
             regData = null;
             return false;
@@ -1003,28 +1086,27 @@ namespace DllRegister
         public static bool IsAssemblyInGAC(string assemblyFullName, out string path)
         {
             path = string.Empty;
+            Assembly ass1;
+            Assembly ass2;
+            bool result = false;
             try
             {
-                Assembly U = Assembly.LoadFrom(assemblyFullName);                
-                Assembly t = Assembly.LoadWithPartialName(U.FullName);
-                U = null;
-                bool result = t.GlobalAssemblyCache;
-                if (!result) return false;                
-                if (System.IO.File.Exists(t.Location))
-                {
-                    path = t.Location;
-                    t = null;
-                }
-                else
-                {
-                    return false;
-                }                
-                return result;
+                ass1 = Assembly.LoadFrom(assemblyFullName);
+                if (ass1 == null) return false;
+                ass2 = Assembly.Load(ass1.GetName());
+                if (ass2 == null) { ass1 = null; return false; }                
+                result = ass2.GlobalAssemblyCache;                                
+                if (!result) { ass1 = null; ass2 = null; return false; }
+                
+                if (System.IO.File.Exists(ass2.Location)) 
+                    path = ass2.Location;
+                else 
+                    result = false;
             }
-            catch
-            {                
-                return false;
-            }
+            catch {}
+
+            ass1 = null; ass2 = null;
+            return false;
         }
 
         public static bool FindInGAC_Reg(string dllName, out string info)

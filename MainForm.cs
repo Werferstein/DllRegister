@@ -13,6 +13,7 @@ using Helper.Uac;
 using Microsoft.Win32;
 using SLogging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -250,12 +251,15 @@ namespace DllRegister
                     // scroll it automatically
                     richTextBox.ScrollToCaret();
 
+                    richTextBox.Update();
+                    richTextBox.BringToFront();
                     #region save log
                     if (!string.IsNullOrWhiteSpace(richTextBox.Text) && !string.IsNullOrWhiteSpace(DllRegister.BaseBackupPath) && System.IO.Directory.Exists(DllRegister.BaseBackupPath))
                     {
                         System.IO.File.WriteAllText(DllRegister.LogFilePath, richTextBox.Text);
                     }
                     #endregion
+                    Application.DoEvents();
                 }
             }
         }
@@ -785,16 +789,22 @@ namespace DllRegister
             string registryLocation = "CLSID";
             if (FileListcomboBox.SelectedItem != null)
             {
-                RegData regData;
-                registryLocation = DllRegister.SearchRegistryNative(System.IO.Path.GetFileName((FileListcomboBox.SelectedItem as FileItem).FullPath), "CLSID", out regData);
-                if (regData != null && !string.IsNullOrWhiteSpace(regData.CLSID)) Logger.Instance.AdddLog(LogType.Info, "Found CLSID        : " + regData.CLSID, "DllRegister");
-                if (regData != null && !string.IsNullOrWhiteSpace(regData.Path)) Logger.Instance.AdddLog(LogType.Info, "Found path in CLSID: " + regData.Path, "DllRegister");
-
-                if (string.IsNullOrEmpty(registryLocation))
+                List<RegData> regData = DllRegister.SearchRegistryNative(System.IO.Path.GetFileName((FileListcomboBox.SelectedItem as FileItem).FullPath), "Wow6432Node\\CLSID");
+                if (regData != null && regData.Count > 0 && !string.IsNullOrWhiteSpace(regData[0].RegistryPath))
                 {
-                    registryLocation = DllRegister.SearchRegistryNative(System.IO.Path.GetFileName((FileListcomboBox.SelectedItem as FileItem).FullPath),"Wow6432Node\\CLSID",out regData);
-                    if (regData != null && !string.IsNullOrWhiteSpace(regData.CLSID)) Logger.Instance.AdddLog(LogType.Info, "Found CLSID in Wow6432Node       : " + regData.CLSID, "DllRegister");
-                    if (regData != null && !string.IsNullOrWhiteSpace(regData.Path)) Logger.Instance.AdddLog(LogType.Info, "Found path in  Wow6432Node\\CLSID: " + regData.Path, "DllRegister");
+                    registryLocation = regData[0].RegistryPath;
+                    if (!string.IsNullOrWhiteSpace(regData[0].CLSID)) Logger.Instance.AdddLog(LogType.Info, "Found CLSID in Wow6432Node       : " + regData[0].CLSID, "DllRegister");
+                    if (!string.IsNullOrWhiteSpace(regData[0].Path)) Logger.Instance.AdddLog(LogType.Info, "Found path in  Wow6432Node\\CLSID: " + regData[0].Path, "DllRegister");
+                }
+                else
+                {
+                    regData = DllRegister.SearchRegistryNative(System.IO.Path.GetFileName((FileListcomboBox.SelectedItem as FileItem).FullPath), "Wow6432Node\\CLSID");
+                    if (regData != null && regData.Count > 0 && !string.IsNullOrWhiteSpace(regData[0].RegistryPath))
+                    {
+                        registryLocation = regData[0].RegistryPath;
+                        if (regData != null && !string.IsNullOrWhiteSpace(regData[0].CLSID)) Logger.Instance.AdddLog(LogType.Info, "Found CLSID in Wow6432Node       : " + regData[0].CLSID, "DllRegister");
+                        if (regData != null && !string.IsNullOrWhiteSpace(regData[0].Path)) Logger.Instance.AdddLog(LogType.Info, "Found path in  Wow6432Node\\CLSID: " + regData[0].Path, "DllRegister");
+                    }
                 }
             }
             Cursor.Current = Cursors.Default;
@@ -813,13 +823,15 @@ namespace DllRegister
             string registryLocation = "Wow6432Node\\CLSID";
             if (FileListcomboBox.SelectedItem != null)
             {
-                RegData regData;
-                registryLocation = DllRegister.SearchRegistryNative(System.IO.Path.GetFileName((FileListcomboBox.SelectedItem as FileItem).FullPath), "Wow6432Node\\CLSID", out regData);
-                if (regData != null && !string.IsNullOrWhiteSpace(regData.CLSID)) Logger.Instance.AdddLog(LogType.Info, "Found CLSID in Wow6432Node       : " + regData.CLSID, "DllRegister");
-                if (regData != null && !string.IsNullOrWhiteSpace(regData.Path)) Logger.Instance.AdddLog(LogType.Info, "Found path in  Wow6432Node\\CLSID: " + regData.Path, "DllRegister");
+                List<RegData> regData = DllRegister.SearchRegistryNative(System.IO.Path.GetFileName((FileListcomboBox.SelectedItem as FileItem).FullPath), "Wow6432Node\\CLSID");
+                if (regData != null && regData.Count > 0 && !string.IsNullOrWhiteSpace(regData[0].RegistryPath) )
+                {
+                    registryLocation = regData[0].RegistryPath;
+                    if (!string.IsNullOrWhiteSpace(regData[0].CLSID)) Logger.Instance.AdddLog(LogType.Info, "Found CLSID in Wow6432Node       : " + regData[0].CLSID, "DllRegister");
+                    if (!string.IsNullOrWhiteSpace(regData[0].Path)) Logger.Instance.AdddLog(LogType.Info, "Found path in  Wow6432Node\\CLSID: " + regData[0].Path, "DllRegister");
+                }
             }
             Cursor.Current = Cursors.Default;
-
             OpenRegEdit(registryLocation);
         }
         private void OpenRegEdit(string registryLocation)
