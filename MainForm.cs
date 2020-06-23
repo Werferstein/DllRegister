@@ -29,7 +29,8 @@ namespace DllRegister
     {
         //[DllImport("E:\\Nextcloud\\Projekt\\C#\\Register DLL\\DLL Temlate\\BluefrogLibrary\\bin\\Release\\BluefrogLibrary.dll", EntryPoint = "#8002")]
         //public static extern void OpenTestForm(string msg);
-
+        private TextSource logBuffer;
+        private string logBufferText;
         private bool blockGui = false;
         private string lastPath = string.Empty;
         private string timeId = DateTime.Now.ToString("ddMMyyHHmmssfff");
@@ -532,6 +533,7 @@ namespace DllRegister
             Setting.OutputPath = textBoxOutPath.Text;
             Setting.SaveLogging = saveInstallLogToolStripMenuItem.Checked;
             Setting.ProjectName = textBoxPName.Text;
+            if (string.IsNullOrWhiteSpace(Setting.ProjectName)) Setting.ProjectName = "Backup";
         }
 
         private void LoadToolStripMenuItem_Click(object sender, EventArgs e)
@@ -936,7 +938,81 @@ namespace DllRegister
 
         private void viewRegFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            viewRegFileToolStripMenuItem.Checked = !viewRegFileToolStripMenuItem.Checked;
 
+            if (viewRegFileToolStripMenuItem.Checked)
+            {
+                
+
+                GetUiInput();
+                logBufferText = fct_box.Text;
+                logBuffer = fct_box.TextSource;
+                FileItem fileItem = FileListcomboBox.SelectedItem as FileItem;
+
+
+
+
+
+                if (FileListcomboBox.SelectedItem != null && !string.IsNullOrWhiteSpace(fileItem.FullPath))
+                {
+                    string fileName = System.IO.Path.GetFileNameWithoutExtension(fileItem.FullPath);
+
+                    string BaseBackupPath = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(Setting.OutputPath) && !Setting.OutputPath.EndsWith("\\")) Setting.OutputPath += "\\";
+
+
+
+
+                    if (string.IsNullOrWhiteSpace(Setting.ProjectName)) Setting.ProjectName = "Backup";
+
+                    System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9 -]");
+                    Setting.ProjectName = rgx.Replace(Setting.ProjectName, "");
+
+                    if (string.IsNullOrWhiteSpace(Setting.OutputPath))
+                    {
+                        BaseBackupPath = System.IO.Path.GetDirectoryName(fileItem.FullPath) + Setting.ProjectName + "\\" + fileName + ".reg";
+                    }
+                    else
+                    {
+                        if (!System.IO.File.Exists(Setting.OutputPath + fileName + ".reg"))
+                        {
+                            BaseBackupPath = Setting.OutputPath + Setting.ProjectName + "\\" + fileName + ".reg";
+                        }
+                    }
+
+
+                    
+                    
+
+                    if (!string.IsNullOrWhiteSpace(BaseBackupPath) && System.IO.File.Exists(BaseBackupPath))
+                    {
+                        try
+                        {
+                            var lines = File.ReadAllText(BaseBackupPath);
+                            if (!string.IsNullOrWhiteSpace(lines))
+                            {
+                                fct_box.Language = Language.CSharp;
+                                fct_box.Text = lines;
+                                viewRegFileToolStripMenuItem.Text = "View Log file";
+                                return;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.AdddLog(LogType.Error, ex.Message,this,"",ex);
+                        }                        
+                    }
+                }
+
+                viewRegFileToolStripMenuItem.Checked = false;
+            }
+            else
+            {
+                viewRegFileToolStripMenuItem.Text = "View Reg. file";                
+                fct_box.TextSource = logBuffer;
+                fct_box.Text = logBufferText;
+                fct_box.Language = Language.Lua;
+            }
         }
     }
 }

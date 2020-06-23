@@ -410,6 +410,7 @@ namespace DllRegister
             // 
             // viewRegFileToolStripMenuItem
             // 
+            this.viewRegFileToolStripMenuItem.AutoToolTip = true;
             this.viewRegFileToolStripMenuItem.BackColor = System.Drawing.Color.Bisque;
             this.viewRegFileToolStripMenuItem.Name = "viewRegFileToolStripMenuItem";
             this.viewRegFileToolStripMenuItem.Size = new System.Drawing.Size(110, 24);
