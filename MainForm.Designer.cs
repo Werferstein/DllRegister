@@ -51,7 +51,7 @@ namespace DllRegister
             this.checkBoxRegistry = new System.Windows.Forms.CheckBox();
             this.checkBoxInstallinGAC = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.button2 = new System.Windows.Forms.Button();
+            this.buttonAdd = new System.Windows.Forms.Button();
             this.comboBoxNetLink = new System.Windows.Forms.ComboBox();
             this.labelResult = new System.Windows.Forms.Label();
             this.buttonUnRegister = new System.Windows.Forms.Button();
@@ -66,6 +66,7 @@ namespace DllRegister
             this.infoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemRegedit = new System.Windows.Forms.ToolStripMenuItem();
             this.bitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewRegFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.FileListcomboBox = new System.Windows.Forms.ComboBox();
             this.FilelistContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -73,16 +74,7 @@ namespace DllRegister
             this.removeAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.openPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.labelCount = new System.Windows.Forms.Label();
-            this.lbIntegrityLevel = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.lbIsElevated = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.lbIsRunAsAdmin = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.lbInAdminGroup = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.richTextBox = new System.Windows.Forms.RichTextBox();
+            this.fct_box = new FastColoredTextBoxNS.FastColoredTextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -90,6 +82,7 @@ namespace DllRegister
             this.splitContainer1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.FilelistContextMenuStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fct_box)).BeginInit();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -114,7 +107,7 @@ namespace DllRegister
             this.splitContainer1.Panel1.Controls.Add(this.checkBoxRegistry);
             this.splitContainer1.Panel1.Controls.Add(this.checkBoxInstallinGAC);
             this.splitContainer1.Panel1.Controls.Add(this.label6);
-            this.splitContainer1.Panel1.Controls.Add(this.button2);
+            this.splitContainer1.Panel1.Controls.Add(this.buttonAdd);
             this.splitContainer1.Panel1.Controls.Add(this.comboBoxNetLink);
             this.splitContainer1.Panel1.Controls.Add(this.labelResult);
             this.splitContainer1.Panel1.Controls.Add(this.buttonUnRegister);
@@ -125,16 +118,7 @@ namespace DllRegister
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.BackColor = System.Drawing.SystemColors.Info;
-            this.splitContainer1.Panel2.Controls.Add(this.labelCount);
-            this.splitContainer1.Panel2.Controls.Add(this.lbIntegrityLevel);
-            this.splitContainer1.Panel2.Controls.Add(this.label4);
-            this.splitContainer1.Panel2.Controls.Add(this.lbIsElevated);
-            this.splitContainer1.Panel2.Controls.Add(this.label3);
-            this.splitContainer1.Panel2.Controls.Add(this.lbIsRunAsAdmin);
-            this.splitContainer1.Panel2.Controls.Add(this.label2);
-            this.splitContainer1.Panel2.Controls.Add(this.lbInAdminGroup);
-            this.splitContainer1.Panel2.Controls.Add(this.label5);
-            this.splitContainer1.Panel2.Controls.Add(this.richTextBox);
+            this.splitContainer1.Panel2.Controls.Add(this.fct_box);
             this.splitContainer1.Size = new System.Drawing.Size(739, 509);
             this.splitContainer1.SplitterDistance = 226;
             this.splitContainer1.SplitterWidth = 8;
@@ -266,20 +250,20 @@ namespace DllRegister
             this.label6.TabIndex = 10;
             this.label6.Text = "RegAsem.exe version:";
             // 
-            // button2
+            // buttonAdd
             // 
-            this.button2.BackColor = System.Drawing.Color.Red;
-            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(12, 181);
-            this.button2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(52, 30);
-            this.button2.TabIndex = 0;
-            this.button2.Text = "Add";
-            this.toolTip1.SetToolTip(this.button2, "Left click for options!");
-            this.button2.UseVisualStyleBackColor = false;
-            this.button2.Click += new System.EventHandler(this.Button2_Click);
-            this.button2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Button2_MouseDown);
+            this.buttonAdd.BackColor = System.Drawing.Color.Red;
+            this.buttonAdd.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonAdd.Location = new System.Drawing.Point(12, 181);
+            this.buttonAdd.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.buttonAdd.Name = "buttonAdd";
+            this.buttonAdd.Size = new System.Drawing.Size(85, 30);
+            this.buttonAdd.TabIndex = 0;
+            this.buttonAdd.Text = "Add";
+            this.toolTip1.SetToolTip(this.buttonAdd, "Left click for options!");
+            this.buttonAdd.UseVisualStyleBackColor = false;
+            this.buttonAdd.Click += new System.EventHandler(this.Button2_Click);
+            this.buttonAdd.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Button2_MouseDown);
             // 
             // comboBoxNetLink
             // 
@@ -300,15 +284,14 @@ namespace DllRegister
             // labelResult
             // 
             this.labelResult.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelResult.AutoSize = true;
             this.labelResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.labelResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelResult.Location = new System.Drawing.Point(616, 83);
+            this.labelResult.Location = new System.Drawing.Point(619, 83);
             this.labelResult.Name = "labelResult";
-            this.labelResult.Size = new System.Drawing.Size(110, 27);
+            this.labelResult.Size = new System.Drawing.Size(107, 27);
             this.labelResult.TabIndex = 4;
             this.labelResult.Text = "................";
-            this.labelResult.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.labelResult.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // buttonUnRegister
             // 
@@ -344,7 +327,8 @@ namespace DllRegister
             this.systemToolStripMenuItem,
             this.infoToolStripMenuItem,
             this.toolStripMenuItemRegedit,
-            this.bitToolStripMenuItem});
+            this.bitToolStripMenuItem,
+            this.viewRegFileToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
@@ -412,6 +396,7 @@ namespace DllRegister
             this.toolStripMenuItemRegedit.Name = "toolStripMenuItemRegedit";
             this.toolStripMenuItemRegedit.Size = new System.Drawing.Size(139, 24);
             this.toolStripMenuItemRegedit.Text = "Open RegEdit.exe";
+            this.toolStripMenuItemRegedit.ToolTipText = "Open Regeditor.exe";
             this.toolStripMenuItemRegedit.Click += new System.EventHandler(this.ToolStripMenuItemRegedit_Click);
             // 
             // bitToolStripMenuItem
@@ -420,7 +405,17 @@ namespace DllRegister
             this.bitToolStripMenuItem.Name = "bitToolStripMenuItem";
             this.bitToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
             this.bitToolStripMenuItem.Text = "64bit";
+            this.bitToolStripMenuItem.ToolTipText = "Open Regeditor.exe";
             this.bitToolStripMenuItem.Click += new System.EventHandler(this.BitToolStripMenuItem_Click);
+            // 
+            // viewRegFileToolStripMenuItem
+            // 
+            this.viewRegFileToolStripMenuItem.BackColor = System.Drawing.Color.Bisque;
+            this.viewRegFileToolStripMenuItem.Name = "viewRegFileToolStripMenuItem";
+            this.viewRegFileToolStripMenuItem.Size = new System.Drawing.Size(110, 24);
+            this.viewRegFileToolStripMenuItem.Text = "View Reg File";
+            this.viewRegFileToolStripMenuItem.ToolTipText = "View the registry build file";
+            this.viewRegFileToolStripMenuItem.Click += new System.EventHandler(this.viewRegFileToolStripMenuItem_Click);
             // 
             // FileListcomboBox
             // 
@@ -432,11 +427,11 @@ namespace DllRegister
             this.FileListcomboBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FileListcomboBox.FormattingEnabled = true;
             this.FileListcomboBox.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.FileListcomboBox.Location = new System.Drawing.Point(66, 183);
+            this.FileListcomboBox.Location = new System.Drawing.Point(151, 183);
             this.FileListcomboBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.FileListcomboBox.MaxDropDownItems = 15;
             this.FileListcomboBox.Name = "FileListcomboBox";
-            this.FileListcomboBox.Size = new System.Drawing.Size(661, 28);
+            this.FileListcomboBox.Size = new System.Drawing.Size(576, 28);
             this.FileListcomboBox.Sorted = true;
             this.FileListcomboBox.TabIndex = 8;
             this.FileListcomboBox.TabStop = false;
@@ -489,109 +484,38 @@ namespace DllRegister
             this.openPathToolStripMenuItem.Text = "Open path";
             this.openPathToolStripMenuItem.Click += new System.EventHandler(this.openPathToolStripMenuItem_Click);
             // 
-            // labelCount
+            // fct_box
             // 
-            this.labelCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelCount.AutoSize = true;
-            this.labelCount.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelCount.Location = new System.Drawing.Point(655, 21);
-            this.labelCount.Name = "labelCount";
-            this.labelCount.Size = new System.Drawing.Size(72, 24);
-            this.labelCount.TabIndex = 17;
-            this.labelCount.Text = "0 Files";
-            // 
-            // lbIntegrityLevel
-            // 
-            this.lbIntegrityLevel.AutoSize = true;
-            this.lbIntegrityLevel.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbIntegrityLevel.Location = new System.Drawing.Point(363, 27);
-            this.lbIntegrityLevel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lbIntegrityLevel.Name = "lbIntegrityLevel";
-            this.lbIntegrityLevel.Size = new System.Drawing.Size(0, 17);
-            this.lbIntegrityLevel.TabIndex = 16;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(237, 27);
-            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(95, 17);
-            this.label4.TabIndex = 15;
-            this.label4.Text = "Integrity level:";
-            // 
-            // lbIsElevated
-            // 
-            this.lbIsElevated.AutoSize = true;
-            this.lbIsElevated.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbIsElevated.Location = new System.Drawing.Point(171, 27);
-            this.lbIsElevated.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lbIsElevated.Name = "lbIsElevated";
-            this.lbIsElevated.Size = new System.Drawing.Size(0, 17);
-            this.lbIsElevated.TabIndex = 14;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(11, 27);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(134, 17);
-            this.label3.TabIndex = 13;
-            this.label3.Text = "Is process elevated:";
-            // 
-            // lbIsRunAsAdmin
-            // 
-            this.lbIsRunAsAdmin.AutoSize = true;
-            this.lbIsRunAsAdmin.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbIsRunAsAdmin.Location = new System.Drawing.Point(363, 5);
-            this.lbIsRunAsAdmin.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lbIsRunAsAdmin.Name = "lbIsRunAsAdmin";
-            this.lbIsRunAsAdmin.Size = new System.Drawing.Size(0, 17);
-            this.lbIsRunAsAdmin.TabIndex = 12;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(237, 5);
-            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(99, 17);
-            this.label2.TabIndex = 11;
-            this.label2.Text = "Run as admin:";
-            // 
-            // lbInAdminGroup
-            // 
-            this.lbInAdminGroup.AutoSize = true;
-            this.lbInAdminGroup.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbInAdminGroup.Location = new System.Drawing.Point(171, 5);
-            this.lbInAdminGroup.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lbInAdminGroup.Name = "lbInAdminGroup";
-            this.lbInAdminGroup.Size = new System.Drawing.Size(0, 17);
-            this.lbInAdminGroup.TabIndex = 10;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(11, 5);
-            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(152, 17);
-            this.label5.TabIndex = 9;
-            this.label5.Text = "Is user in admin group:";
-            // 
-            // richTextBox
-            // 
-            this.richTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.richTextBox.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBox.Location = new System.Drawing.Point(12, 47);
-            this.richTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.richTextBox.Name = "richTextBox";
-            this.richTextBox.Size = new System.Drawing.Size(715, 217);
-            this.richTextBox.TabIndex = 1;
-            this.richTextBox.Text = "";
+            this.fct_box.AutoCompleteBracketsList = new char[] {
+        '(',
+        ')',
+        '{',
+        '}',
+        '[',
+        ']',
+        '\"',
+        '\"',
+        '\'',
+        '\''};
+            this.fct_box.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\n^\\s*(case|default)\\s*[^:]*(" +
+    "?<range>:)\\s*(?<range>[^;]+);";
+            this.fct_box.AutoScrollMinSize = new System.Drawing.Size(31, 18);
+            this.fct_box.BackBrush = null;
+            this.fct_box.CharHeight = 18;
+            this.fct_box.CharWidth = 10;
+            this.fct_box.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.fct_box.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+            this.fct_box.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.fct_box.Font = new System.Drawing.Font("Courier New", 9.75F);
+            this.fct_box.IsReplaceMode = false;
+            this.fct_box.Location = new System.Drawing.Point(0, 0);
+            this.fct_box.Name = "fct_box";
+            this.fct_box.Paddings = new System.Windows.Forms.Padding(0);
+            this.fct_box.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
+            this.fct_box.ServiceColors = null;
+            this.fct_box.Size = new System.Drawing.Size(739, 275);
+            this.fct_box.TabIndex = 18;
+            this.fct_box.Zoom = 100;
             // 
             // toolTip1
             // 
@@ -618,12 +542,12 @@ namespace DllRegister
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
-            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.FilelistContextMenuStrip.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.fct_box)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -633,22 +557,13 @@ namespace DllRegister
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.Button buttonUnRegister;
         private System.Windows.Forms.Button buttonRegister;
-        private System.Windows.Forms.RichTextBox richTextBox;
         private System.Windows.Forms.Label labelResult;
         private System.Windows.Forms.ComboBox comboBoxNetLink;
-        private System.Windows.Forms.Label lbIntegrityLevel;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label lbIsElevated;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label lbIsRunAsAdmin;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label lbInAdminGroup;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem systemToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem infoToolStripMenuItem;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button buttonAdd;
         private System.Windows.Forms.ComboBox FileListcomboBox;
         private System.Windows.Forms.ToolStripMenuItem loadToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
@@ -656,7 +571,6 @@ namespace DllRegister
         private System.Windows.Forms.ToolStripMenuItem addToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeAllToolStripMenuItem;
-        private System.Windows.Forms.Label labelCount;
         private System.Windows.Forms.CheckBox checkBoxRegistry;
         private System.Windows.Forms.CheckBox checkBoxInstallinGAC;
         private System.Windows.Forms.CheckBox checkBoxCodebase;
@@ -674,6 +588,8 @@ namespace DllRegister
         private System.Windows.Forms.ToolStripMenuItem openPathToolStripMenuItem;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBoxPName;
+        private FastColoredTextBoxNS.FastColoredTextBox fct_box;
+        private System.Windows.Forms.ToolStripMenuItem viewRegFileToolStripMenuItem;
     }
 }
 

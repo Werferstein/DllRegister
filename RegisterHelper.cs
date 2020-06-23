@@ -350,9 +350,7 @@ namespace DllRegister
         public static bool UnRegister(Settings setting, string timeId)
         {
             if (setting == null || setting.FileItems == null) throw new Exception("Missing values in Setting!");
-            int regCount = 0;
             bool error = false;
-            bool IsCopied = false;
 
             if (!TestOutputPath(setting))
             {
@@ -554,28 +552,25 @@ namespace DllRegister
             bool diff64 = false;
             bool diff32 = false;
 
-            StringBuilder message = new StringBuilder();
-            message.AppendLine();
-
-            gac = TestIsInGAG(path, message, out string _);
+            gac = TestIsInGAG(path, out string _);
 
             #region Direct loadable?
             if (DllRegister.IsComDllLoadable(path))
             {
-                message.AppendLine("The DLL is direct loadable over path: " + path);
+                Logger.Instance.AdddLog(LogType.Info, "The DLL is direct loadable over path: " + path, "DllRegister");                
             }
             else
             {
-                message.AppendLine("Warning: The DLL is not direct loadable over path! " + System.IO.Path.GetFileName(path));
-                //error++;
+                Logger.Instance.AdddLog(LogType.Error, "The DLL is not direct loadable over path! (" + path +")", "DllRegister");                
+                error++;
             }
             #endregion
 
             #region main 32bit & 64bit            
             List<RegData> regData = SearchRegistryNative(System.IO.Path.GetFileName(path), "CLSID", true);
             if (regData == null|| regData.Count == 0 )
-            {
-                message.AppendLine(@"No CLSID fond in CLASSES_ROOT\CLSID (for DLLs 32bit) ! " + System.IO.Path.GetFileName(path));
+            {                
+                Logger.Instance.AdddLog(LogType.Warn, @"(CLASSES_ROOT\CLSID) Not fond! ->" + System.IO.Path.GetFileName(path), "DllRegister");
             }
             else
             {
@@ -586,13 +581,14 @@ namespace DllRegister
                     #region differ in path
                     if (!string.IsNullOrWhiteSpace(item.Path) && path.ToUpper() != item.Path.ToUpper())
                     {
-                        message.AppendLine(@"ERROR| The DLL path found in the registry differs from the new path to DLL");
-                        message.AppendLine(@"DLL path: " + path);
-                        message.AppendLine(@"new path: " + item.Path);
+
+                        Logger.Instance.AdddLog(LogType.Error, "The DLL path found in the registry differs from the new path to DLL (CLSID)", "DllRegister");
+                        Logger.Instance.AdddLog(LogType.Error, "DLL path: " + path, "DllRegister");
+                        Logger.Instance.AdddLog(LogType.Error, "New path: " + item.Path, "DllRegister");
+
                         if (correct &&
                             MessageBox.Show("The DLL path found in the registry differs from the new path to DLL. Should this path be corrected?" + Environment.NewLine + item.ToString(), "Should this path be corrected", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
-                        {
-                            Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
+                        {                            
                             UnRegister(item.Path, RegasmPath, outPath, time);
                             CleanReg(item.CLSID, item.Path);
                             return true;
@@ -605,8 +601,8 @@ namespace DllRegister
                     if (!string.IsNullOrWhiteSpace(tempCLSID) &&
                         !string.IsNullOrWhiteSpace(regData.ToString()) &&
                         tempCLSID != regData.ToString())                        
-                    {
-                        message.AppendLine(@"ERROR| Found different CLSIDs in registry! (CLSID)");
+                    {                        
+                        Logger.Instance.AdddLog(LogType.Error, "Found different CLSIDs in registry! (CLSID)", "DllRegister");
                         diff32 = true;
                     } 
                     #endregion
@@ -618,8 +614,8 @@ namespace DllRegister
             List<RegData> regData64 = SearchRegistryNative(System.IO.Path.GetFileName(path), "Wow6432Node\\CLSID",true);
             
             if (regData64 == null || regData64.Count == 0)
-            {
-                message.AppendLine(@"No CLSID fond in CLASSES_ROOT\Wow6432Node\CLSID (for DLLs 64bit) ! " + System.IO.Path.GetFileName(path));
+            {                
+                Logger.Instance.AdddLog(LogType.Warn, @"(CLASSES_ROOT\Wow6432Node\CLSID) Not fond! ->" + System.IO.Path.GetFileName(path), "DllRegister");
             }
             else
             {
@@ -631,13 +627,14 @@ namespace DllRegister
                     #region differ in path
                     if (!string.IsNullOrWhiteSpace(item64.Path) && path.ToUpper() != item64.Path.ToUpper())
                     {
-                        message.AppendLine(@"ERROR| The DLL path found in the registry (Wow6432Node) differs from the new path to DLL:");
-                        message.AppendLine(@"DLL path: " + path);
-                        message.AppendLine(@"new path: " + item64.Path);
+                        Logger.Instance.AdddLog(LogType.Error, "The DLL path found in the registry differs from the new path to DLL (Wow6432Node)", "DllRegister");
+                        Logger.Instance.AdddLog(LogType.Error, "DLL path: " + path, "DllRegister");
+                        Logger.Instance.AdddLog(LogType.Error, "New path: " + item64.Path, "DllRegister");
+
+
                         if (correct &&
                             MessageBox.Show("The DLL path found in the registry (Wow6432Node) differs from the new path to DLL. Should this path be corrected?" + Environment.NewLine + item64.ToString(), "Should this path be corrected", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
-                        {
-                            Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
+                        {                            
                             UnRegister(item64.Path, RegasmPath, outPath, time);
                             CleanReg(item64.CLSID, item64.Path);
                             return true;
@@ -650,8 +647,8 @@ namespace DllRegister
                     if (!string.IsNullOrWhiteSpace(tempCLSID) &&
                         !string.IsNullOrWhiteSpace(regData64.ToString()) &&
                          tempCLSID != regData64.ToString())
-                    {
-                        message.AppendLine(@"ERROR| Found different CLSIDs in registry! (Wow6432Node)");
+                    {                        
+                        Logger.Instance.AdddLog(LogType.Error, "Found different CLSIDs in registry! (Wow6432Node)", "DllRegister");
                         diff32 = true;
                     } 
                     #endregion
@@ -665,30 +662,35 @@ namespace DllRegister
                 foreach (var regItem in regData)
                 {
                     if (!string.IsNullOrWhiteSpace(regItem.Class))
-                    {
-                        message.Append(@"Search in root for: " + regItem.Class + " ->");
+                    {                        
+                        Logger.Instance.AdddLog(LogType.Info, "Search in root for: " + regItem.Class + " ->", "DllRegister");
                         string Id = GetCLSIDFromClassName(regItem.Class, regItem.CLSID, out int tempError);
                         error += tempError;
                         if (Id != string.Empty)
                         {
                             if (Id == regItem.CLSID)
-                            {
-                                message.AppendLine(@" Found!");
+                            {                                
+                                Logger.Instance.AdddLog(LogType.Info, "Found!", "DllRegister");
                             }
                             else
                             {
-                                message.AppendLine(@"ERROR| Found class name in root but CLSID is different !" + Environment.NewLine +
+                                
+                                Logger.Instance.AdddLog(LogType.Error,"Found class name in root but CLSID is different !" + 
+                                    Environment.NewLine +
                                     "CLSID    : " + regItem.CLSID + Environment.NewLine +
-                                    "new CLSID: " + Id);
+                                    "new CLSID: " + Id, "DllRegister");
+
                                 string className = regItem.Class;
                                 error++;
 
                                 #region 32bit
+
                                 RegData newregData;
                                 RegistryKey t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("CLSID" + "\\{" + Id + "}\\InProcServer32");
                                 if (!string.IsNullOrEmpty(className) && t_clsidSubKey != null)
                                 {
 
+                                    StringBuilder message = new StringBuilder();
                                     message.AppendLine("--------------------------------------------------------------------------------------------------------");
                                     message.AppendLine("CLSID" + "\\{" + Id + "}\\InProcServer32");
                                     if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\", ""), "", out newregData, className))
@@ -698,12 +700,14 @@ namespace DllRegister
                                         if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
                                     }
                                     message.AppendLine("--------------------------------------------------------------------------------------------------------");
+                                    Logger.Instance.AdddLog(LogType.Info, message.ToString(), "DllRegister");
                                 }
                                 #endregion
                                 #region 64bit
                                 t_clsidSubKey = Registry.ClassesRoot.OpenSubKey("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
                                 if (!string.IsNullOrEmpty(className) && t_clsidSubKey != null)
                                 {
+                                    StringBuilder message = new StringBuilder();
                                     message.AppendLine("--------------------------------------------------------------------------------------------------------");
                                     message.AppendLine("Wow6432Node\\CLSID" + "\\{" + Id + "}\\InProcServer32");
                                     if (SearchValueRegistryNative(Id, t_clsidSubKey.Name.Replace("HKEY_CLASSES_ROOT\\", ""), "", out newregData, className))
@@ -713,6 +717,7 @@ namespace DllRegister
                                         if (!System.IO.File.Exists(newregData.Path)) message.AppendLine("File not found Path from RegKey-> Path: " + newregData.Path);
                                     }
                                     message.AppendLine("--------------------------------------------------------------------------------------------------------");
+                                    Logger.Instance.AdddLog(LogType.Info, message.ToString(), "DllRegister");
                                 }
                                 #endregion
                             }
@@ -722,9 +727,8 @@ namespace DllRegister
             }
             else
             {
-                message.AppendLine(@"No CLSID fond in registry! (CLSID is empty from Dll name)" + System.IO.Path.GetFileName(path));
-                Logger.Instance.AdddLog(LogType.Error, message.ToString(), "DllRegister");
-                if (error > 0) Logger.Instance.AdddLog(LogType.Error, "ERROR| Check the log file (" + error.ToString() + " errors)!", "DllRegister");
+                Logger.Instance.AdddLog(LogType.Error, "No CLSID fond in registry!(CLSID is empty from Dll name)" + System.IO.Path.GetFileName(path), "DllRegister");                                
+                if (error > 0) Logger.Instance.AdddLog(LogType.Error, "Check the log file (" + error.ToString() + " errors)!", "DllRegister");
                 return false;
             }
 
@@ -737,47 +741,45 @@ namespace DllRegister
                     !string.IsNullOrEmpty(regData64[0].CLSID) &&
                     regData[0].CLSID != regData64[0].CLSID)
                 {
-                    message.AppendLine("ERROR| The CLSID is different from Wow6432Node:");
-                    message.AppendLine("in CLSID      : " + regData[0].CLSID);
-                    message.AppendLine("in Wow6432Node: " + regData64[0].CLSID);
+                    Logger.Instance.AdddLog(LogType.Error, "ERROR| The CLSID is different from Wow6432Node:", "DllRegister");
+                    Logger.Instance.AdddLog(LogType.Error, "in CLSID      : " + regData[0].CLSID, "DllRegister");
+                    Logger.Instance.AdddLog(LogType.Error, "in Wow6432Node: " + regData64[0].CLSID, "DllRegister");
                     error++;
                 }
 
                 if (!string.IsNullOrEmpty(regData[0].Path) && !string.IsNullOrEmpty(regData64[0].Path) &&
                      regData[0].Path.ToLower() != regData64[0].Path.ToLower())
                 {
-                    message.AppendLine("ERROR| The CLSID path is different from Wow6432Node path:");
-                    message.AppendLine("in CLSID      : " + regData[0].Path);
-                    message.AppendLine("in Wow6432Node: " + regData64[0].Path);
+                    Logger.Instance.AdddLog(LogType.Error, "ERROR| The CLSID path is different from Wow6432Node path:", "DllRegister");
+                    Logger.Instance.AdddLog(LogType.Error, "in CLSID      : " + regData[0].Path, "DllRegister");
+                    Logger.Instance.AdddLog(LogType.Error, "in Wow6432Node: " + regData64[0].Path, "DllRegister");
                     error++;
                 }
             }
 
-            //message.AppendLine("The CLSID " + regData.CLSID + " was found in the registry!");
-            Logger.Instance.AdddLog(LogType.Info, message.ToString(), "DllRegister");
             if (error > 0)Logger.Instance.AdddLog(LogType.Error, "ERROR| Check the log file (" + error.ToString() + " errors)!", "DllRegister");            
             return true;
         }
 
-        private static bool TestIsInGAG(string path, StringBuilder message,out string newPath )
+        private static bool TestIsInGAG(string path,out string newPath )
         {
             bool gac = false;
             newPath = string.Empty;
             if (SystemUtil.IsAssemblyInGAC(System.IO.Path.GetFileNameWithoutExtension(path)))
-            {
-                message.AppendLine("The DLL is registered in GAC (Fusion): " + System.IO.Path.GetFileName(path));
+            {                
+                Logger.Instance.AdddLog(LogType.Info, "(GAC) The DLL is registered in GAC (Fusion): " + System.IO.Path.GetFileName(path), "DllRegister");
                 if (!gac) gac = true;
             }
 
             if (FindInGAC_Reg(System.IO.Path.GetFileNameWithoutExtension(path), out string value))
-            {
-                message.AppendLine("The DLL is registered in GAC (Registry): " + value);
+            {                
+                Logger.Instance.AdddLog(LogType.Info, "(GAC) The DLL is registered in GAC (Registry): " + value, "DllRegister");
                 if (!gac) gac = true;
             }
             if (DllRegister.IsAssemblyInGAC(path, out string xpath))
             {
-                newPath = xpath;
-                message.AppendLine("The DLL is registered in GAC (Assembly): " + xpath);
+                newPath = xpath;                
+                Logger.Instance.AdddLog(LogType.Info, "(GAC) The DLL is registered in GAC (Assembly): " + xpath, "DllRegister");
                 if (!gac) gac = true;
             }
             return gac;
@@ -933,14 +935,14 @@ namespace DllRegister
                 {
                     count++;
                     if (regData == null) regData = new List<RegData>();                    
-                    Logger.Instance.AdddLog(LogType.Info, "Found ->" + Environment.NewLine + "Registry:       " + regPath + Environment.NewLine + newValue.GetInfo + Environment.NewLine + "(Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")" + Environment.NewLine, "DllRegister", "");                                        
-                    if (!System.IO.File.Exists(newValue.Path)) Logger.Instance.AdddLog(LogType.Error, "File not found Path from RegKey-> (" + root + "\\" + newValue.CLSID + ") Path: " + newValue.Path, "DllRegister", "");                    
+                    Logger.Instance.AdddLog(LogType.Info, "(" + root + ")" +  " Found ->Registry: " + regPath + Environment.NewLine + newValue.GetInfo + Environment.NewLine + "(Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString() + ")" + Environment.NewLine, "DllRegister", "");                                        
+                    if (!System.IO.File.Exists(newValue.Path)) Logger.Instance.AdddLog(LogType.Error, "File not found! path from RegKey-> (" + root + "\\" + newValue.CLSID + ") Path: " + newValue.Path, "DllRegister", "");                    
                     regData.Add(newValue);                    
                     if (!allKeys) return regData;
                 }
             }            
             if(count==0)
-                Logger.Instance.AdddLog(LogType.Error, "Not found in Keys (" + root + "): " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString(), "DllRegister", "");
+                Logger.Instance.AdddLog(LogType.Error, "(" + root + ")" + " Not fond! ->Keys: " + SearchKeys.ToString() + ", Values: " + SearchInValues.ToString(), "DllRegister", "");
             return regData;
         }
 
@@ -1011,51 +1013,47 @@ namespace DllRegister
         public static bool RegisterInGAC(string path)
         {
             UnregisterInGAC(path);
-            bool ok = false;
-            StringBuilder message = new StringBuilder();
+            bool ok = false;            
             try
             {
                 new System.EnterpriseServices.Internal.Publish().GacInstall(path);                
-                if (TestIsInGAG(path, message, out string newpath))
+                if (TestIsInGAG(path, out string newpath))
                 {
                     ok = true;
                     if (!string.IsNullOrWhiteSpace(newpath) && System.IO.File.Exists(newpath))
-                    {
-                        message.AppendLine("Register in GAC -> Ok! " + newpath);
+                    {                        
+                        Logger.Instance.AdddLog(LogType.Info, "Register in GAC->Ok!" + newpath, "DllRegister", "");
                     }
                 }
             }
             catch (Exception ex)
             {
                 Logger.Instance.AdddLog(LogType.Error, "Register in GAC?", "DllRegister", "", ex);
-            }
-            Logger.Instance.AdddLog(LogType.Debug, message.ToString(), "DllRegister", "");
+            }            
             return ok;
         }
         public static bool UnregisterInGAC(string path)
 
         {
-            bool ok = false;
-            StringBuilder message = new StringBuilder();
-
+            bool ok = false;      
             try
             {
                 if (System.IO.File.Exists(path))
                 {                    
-                    if (TestIsInGAG(path, message, out string newpath))
+                    if (TestIsInGAG(path, out string newpath))
                     {
                         if (!string.IsNullOrWhiteSpace(newpath) && System.IO.File.Exists(newpath))
                         {
                             new System.EnterpriseServices.Internal.Publish().GacRemove(newpath);
                             if (!System.IO.File.Exists(newpath))
                             {
-                                message.AppendLine("Unregister in GAC -> Ok! " + newpath);                                ;
+                                Logger.Instance.AdddLog(LogType.Info, "Unregister in GAC->Ok!" + newpath, "DllRegister", "");                                
                                 ok = true;                                
                             }
                         }
                         else
                         {
-                            message.AppendLine("Unregister in GAC (path not fount over assenbly!) -> " + path);
+                            Logger.Instance.AdddLog(LogType.Warn, "Unregister in GAC (path not fount over assenbly!) -> " + path, "");                            
                             new System.EnterpriseServices.Internal.Publish().GacRemove(path);
                             ok = true;
                         }
@@ -1065,8 +1063,7 @@ namespace DllRegister
             catch (Exception ex)
             {
                 Logger.Instance.AdddLog(LogType.Error, "Unregister in GAC?", "DllRegister", "", ex);                
-            }
-            Logger.Instance.AdddLog(LogType.Debug, message.ToString(), "DllRegister", "");
+            }            
             return ok;
 
 

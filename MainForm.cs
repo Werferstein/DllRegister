@@ -8,6 +8,7 @@ werferstein.org
   To Public License, Version 2, as published by Sam Hocevar.
 */
 
+
 using Helper.Dll;
 using Helper.Uac;
 using Microsoft.Win32;
@@ -20,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using FastColoredTextBoxNS;
 
 namespace DllRegister
 {
@@ -33,7 +35,11 @@ namespace DllRegister
         private string timeId = DateTime.Now.ToString("ddMMyyHHmmssfff");
         private Settings Setting;
 
-        
+        TextStyle nullStyle = new TextStyle(Brushes.Black, null, FontStyle.Regular);
+        TextStyle infoStyle = new TextStyle(Brushes.Black, null, FontStyle.Regular);
+        TextStyle warningStyle = new TextStyle(Brushes.BurlyWood, null, FontStyle.Regular);
+        TextStyle errorStyle = new TextStyle(Brushes.Red, null, FontStyle.Regular);
+
         /*
         Path structure:
 
@@ -44,7 +50,7 @@ namespace DllRegister
          */
 
 
-        
+
         public MainForm()
         {
             InitializeComponent();
@@ -54,7 +60,7 @@ namespace DllRegister
             if (!Logger.LoggerIsOnline)
             {
                 Logger.Instance.Stop();
-                Logger.Instance.Start(Output.ADD_Counter | Output.ADD_InnerException | Output.ADD_StackTrace);
+                Logger.Instance.Start( Output.ADD_InnerException | Output.ADD_StackTrace);
             }
             Logger.Instance.OnLogMessage += Instance_OnLogMessage; 
             #endregion
@@ -63,19 +69,11 @@ namespace DllRegister
             if (!String.IsNullOrWhiteSpace(Settings.LoadedFrom)) Setting.MainOptions.OptionPath = Settings.LoadedFrom;
             if (Setting == null) Setting = new Settings();           
             
-            Logger.Instance.AdddLog(LogType.Info, "DLL_Register " + String.Format("Version {0}", Assembly.GetExecutingAssembly().GetName().Version.ToString()) + " start!", this);
+            Logger.Instance.AdddLog(LogType.Info, Assembly.GetEntryAssembly().FullName + " Start!", this);
             if (Environment.Is64BitProcess)
             {
-                Logger.Instance.AdddLog(LogType.Info, "It is a 64 bit proccess!");
+                Logger.Instance.AdddLog(LogType.Info, "This is a 64 bit proccess");
             }
-
-
-
-
-
-
-
-            
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -197,7 +195,7 @@ namespace DllRegister
                         lastPath = item.FullPath;
                     }
                 }
-                labelCount.Text = FileListcomboBox.Items.Count.ToString() + " Files";
+                buttonAdd.Text = "ADD (" + FileListcomboBox.Items.Count.ToString() + ")";
             }
             #endregion
         }
@@ -243,20 +241,50 @@ namespace DllRegister
             }
             else
             {
-                lock (richTextBox)
+                lock (fct_box)
                 {
-                    richTextBox.AppendText(e.LogMessage + Environment.NewLine);
-                    // set the current caret position to the end
-                    richTextBox.SelectionStart = richTextBox.Text.Length;
-                    // scroll it automatically
-                    richTextBox.ScrollToCaret();
 
-                    richTextBox.Update();
-                    richTextBox.BringToFront();
-                    #region save log
-                    if (!string.IsNullOrWhiteSpace(richTextBox.Text) && !string.IsNullOrWhiteSpace(DllRegister.BaseBackupPath) && System.IO.Directory.Exists(DllRegister.BaseBackupPath))
+                    TextStyle style = nullStyle;
+                    switch (e.Level)
                     {
-                        System.IO.File.WriteAllText(DllRegister.LogFilePath, richTextBox.Text);
+                        case LogType.Info:
+                            style = infoStyle;
+                            break;
+                        case LogType.Debug:
+                            break;
+                        case LogType.Warn:
+                            style = warningStyle;
+                            break;
+                        case LogType.Error:
+                            style = errorStyle;
+                            break;
+                        case LogType.Off:
+                        default:
+                            break;
+                    }
+                    //some stuffs for best performance
+                    fct_box.BeginUpdate();
+                    fct_box.Selection.BeginUpdate();
+                    //remember user selection
+                    var userSelection = fct_box.Selection.Clone();
+                    //add text with predefined style
+                    fct_box.TextSource.CurrentTB = fct_box;
+                    fct_box.AppendText(e.LogMessage + Environment.NewLine, style);
+                    //restore user selection
+                    if (!userSelection.IsEmpty || userSelection.Start.iLine < fct_box.LinesCount - 2)
+                    {
+                        fct_box.Selection.Start = userSelection.Start;
+                        fct_box.Selection.End = userSelection.End;
+                    }
+                    else
+                        fct_box.GoEnd();//scroll to end of the text
+
+                    fct_box.Update();
+                    fct_box.BringToFront();
+                    #region save log
+                    if (!string.IsNullOrWhiteSpace(fct_box.Text) && !string.IsNullOrWhiteSpace(DllRegister.BaseBackupPath) && System.IO.Directory.Exists(DllRegister.BaseBackupPath))
+                    {
+                        System.IO.File.WriteAllText(DllRegister.LogFilePath, fct_box.Text);
                     }
                     #endregion
                     Application.DoEvents();
@@ -278,7 +306,7 @@ namespace DllRegister
             labelResult.BorderStyle = BorderStyle.None;
             labelResult.BackColor = this.BackColor;
             labelResult.Text = string.Empty;
-            richTextBox.Text = string.Empty;
+            fct_box.Text = string.Empty;
             
 
             Logger.Instance.AdddLog(LogType.Debug, "Start to register DLLs!", this);
@@ -350,7 +378,7 @@ namespace DllRegister
             labelResult.BorderStyle = BorderStyle.None;
             labelResult.BackColor = this.BackColor;
             labelResult.Text = string.Empty;
-            richTextBox.Text = string.Empty;
+            fct_box.Text = string.Empty;
            
             Logger.Instance.AdddLog(LogType.Debug, "Start to unregister DLLs!", this);
             GetUiInput();
@@ -387,33 +415,29 @@ namespace DllRegister
         #region UAC Info
         private void GetInfo()
         {
+            string message = string.Empty;
+            
             // Get and display whether the primary access token of the process belongs 
             // to user account that is a member of the local Administrators group even 
             // if it currently is not elevated (IsUserInAdminGroup).
             try
             {
-                bool fInAdminGroup = UacHelper.IsUserInAdminGroup();
-                this.lbInAdminGroup.Text = fInAdminGroup.ToString();
+                message += "Is user in admin group:" + UacHelper.IsUserInAdminGroup().ToString();
             }
-            catch (Exception ex)
+            catch
             {
-                this.lbInAdminGroup.Text = "N/A";
-                MessageBox.Show(ex.Message, "An error occurred in IsUserInAdminGroup",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                message += "Is user in admin group:N/A";
             }
 
             // Get and display whether the process is run as administrator or not 
             // (IsRunAsAdmin).
             try
             {
-                bool fIsRunAsAdmin = UacHelper.IsRunAsAdmin();
-                this.lbIsRunAsAdmin.Text = fIsRunAsAdmin.ToString();
+                message += " |Run as admin:" + UacHelper.IsRunAsAdmin().ToString();
             }
-            catch (Exception ex)
+            catch
             {
-                this.lbIsRunAsAdmin.Text = "N/A";
-                MessageBox.Show(ex.Message, "An error occurred in IsRunAsAdmin",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                message += " |Run as admin:N/A";
             }
 
 
@@ -426,56 +450,45 @@ namespace DllRegister
 
                 try
                 {
-                    // Get and display the process elevation information.
-                    bool fIsElevated = UacHelper.IsProcessElevated();
-                    this.lbIsElevated.Text = fIsElevated.ToString();
-
-                    // Update the Self-elevate button to show the UAC shield icon on 
-                    // the UI if the process is not elevated.
-                    //this.btnElevate.FlatStyle = FlatStyle.System;
-                    //NativeMethods.SendMessage(btnElevate.Handle,
-                    //    NativeMethods.BCM_SETSHIELD, (IntPtr)0,
-                    //    fIsElevated ? IntPtr.Zero : (IntPtr)1);
+                    message += " |Is process elevated:" + UacHelper.IsProcessElevated().ToString();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    this.lbIsElevated.Text = "N/A";
-                    MessageBox.Show(ex.Message, "An error occurred in IsProcessElevated",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    message += " |Is process elevated:N/A";
                 }
 
                 try
                 {
                     // Get and display the process integrity level.
                     int IL = UacHelper.GetProcessIntegrityLevel();
+                    message += " |Integrity level:"; 
+
                     switch (IL)
                     {
                         case NativeMethods.SECURITY_MANDATORY_UNTRUSTED_RID:
-                            this.lbIntegrityLevel.Text = "Untrusted"; break;
+                            message += "Untrusted"; break;
                         case NativeMethods.SECURITY_MANDATORY_LOW_RID:
-                            this.lbIntegrityLevel.Text = "Low"; break;
+                            message += "Low"; break;
                         case NativeMethods.SECURITY_MANDATORY_MEDIUM_RID:
-                            this.lbIntegrityLevel.Text = "Medium"; break;
+                            message += "Medium"; break;
                         case NativeMethods.SECURITY_MANDATORY_HIGH_RID:
-                            this.lbIntegrityLevel.Text = "High"; break;
+                            message += "High"; break;
                         case NativeMethods.SECURITY_MANDATORY_SYSTEM_RID:
-                            this.lbIntegrityLevel.Text = "System"; break;
+                            message += "System"; break;
                         default:
-                            this.lbIntegrityLevel.Text = "Unknown"; break;
+                            message += "Unknown"; break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.lbIntegrityLevel.Text = "N/A";
-                    MessageBox.Show(ex.Message, "An error occurred in GetProcessIntegrityLevel",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    message += "|Integrity level:N/A";
                 }
             }
             else
             {
-                this.lbIsElevated.Text = "N/A";
-                this.lbIntegrityLevel.Text = "N/A";
+                message += " |Is process elevated:N/A |Integrity level:N/A";                
             }
+            Logger.Instance.AdddLog(LogType.Warn, message, this);            
         }
         #endregion
 
@@ -625,7 +638,7 @@ namespace DllRegister
             FileListcomboBox.Items.Clear();
             Setting.FileItems.Clear();
             FileListcomboBox.Text = string.Empty;
-            labelCount.Text = "0 Files";
+            buttonAdd.Text = "ADD";            
         }
 
         private void DeleteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -637,7 +650,7 @@ namespace DllRegister
                 FileListcomboBox.Items.Remove(FileListcomboBox.SelectedItem);
                 if (index > 0) FileListcomboBox.SelectedItem = FileListcomboBox.Items[index - 1];
                 if (FileListcomboBox.Items.Count == 0) FileListcomboBox.Text = string.Empty;
-                labelCount.Text = FileListcomboBox.Items.Count.ToString() + " Files";
+                buttonAdd.Text = "ADD (" + FileListcomboBox.Items.Count.ToString() + ")";
             }
         }
 
@@ -675,7 +688,7 @@ namespace DllRegister
             labelResult.BorderStyle = BorderStyle.None;
             labelResult.BackColor = this.BackColor;
             labelResult.Text = string.Empty;
-            richTextBox.Text = string.Empty;
+            fct_box.Text = string.Empty;
             bool error = false;
             Logger.Instance.AdddLog(LogType.Debug, "Start to find DLLs in registry!", this);
             if (Environment.Is64BitProcess)
@@ -919,6 +932,11 @@ namespace DllRegister
                 }
                 blockGui = false;
             }
+        }
+
+        private void viewRegFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
