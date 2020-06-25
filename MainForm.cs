@@ -22,6 +22,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using FastColoredTextBoxNS;
+using System.Text.RegularExpressions;
 
 namespace DllRegister
 {
@@ -29,17 +30,31 @@ namespace DllRegister
     {
         //[DllImport("E:\\Nextcloud\\Projekt\\C#\\Register DLL\\DLL Temlate\\BluefrogLibrary\\bin\\Release\\BluefrogLibrary.dll", EntryPoint = "#8002")]
         //public static extern void OpenTestForm(string msg);
-        private TextSource logBuffer;
+        //private TextSource logBuffer;
         private string logBufferText;
         private bool blockGui = false;
         private string lastPath = string.Empty;
         private string timeId = DateTime.Now.ToString("ddMMyyHHmmssfff");
         private Settings Setting;
 
+
+
+
+        //styles
         TextStyle nullStyle = new TextStyle(Brushes.Black, null, FontStyle.Regular);
         TextStyle infoStyle = new TextStyle(Brushes.Black, null, FontStyle.Regular);
         TextStyle warningStyle = new TextStyle(Brushes.BurlyWood, null, FontStyle.Regular);
         TextStyle errorStyle = new TextStyle(Brushes.Red, null, FontStyle.Regular);
+
+        TextStyle BlueStyle = new TextStyle(Brushes.Blue, null, FontStyle.Regular);
+        TextStyle BoldStyle = new TextStyle(null, null, FontStyle.Bold | FontStyle.Underline);
+        TextStyle GrayStyle = new TextStyle(Brushes.Gray, null, FontStyle.Regular);
+        TextStyle MagentaStyle = new TextStyle(Brushes.Magenta, null, FontStyle.Regular);
+        TextStyle GreenStyle = new TextStyle(Brushes.Green, null, FontStyle.Italic);
+        TextStyle BrownStyle = new TextStyle(Brushes.Brown, null, FontStyle.Italic);
+        TextStyle MaroonStyle = new TextStyle(Brushes.Maroon, null, FontStyle.Regular);
+        MarkerStyle SameWordsStyle = new MarkerStyle(new SolidBrush(Color.FromArgb(40, Color.Gray)));
+
 
         /*
         Path structure:
@@ -68,8 +83,9 @@ namespace DllRegister
 
             Setting = Settings.Load("*.regdll");
             if (!String.IsNullOrWhiteSpace(Settings.LoadedFrom)) Setting.MainOptions.OptionPath = Settings.LoadedFrom;
-            if (Setting == null) Setting = new Settings();           
-            
+            if (Setting == null) Setting = new Settings();
+            DllRegister.TestSettings(Setting);
+
             Logger.Instance.AdddLog(LogType.Info, Assembly.GetEntryAssembly().FullName + " Start!", this);
             if (Environment.Is64BitProcess)
             {
@@ -78,6 +94,12 @@ namespace DllRegister
         }
 
         private void MainForm_Load(object sender, EventArgs e)
+        {
+            SetValuesToForm();
+        }
+
+
+        private void SetValuesToForm(bool viewLog = true)
         {
             blockGui = true;
             if (SystemUtil.InternalCheckIsWow64() && !Environment.Is64BitProcess && MessageBox.Show("With a 32bit application no registry entries can be read which refer to 64bit DLLs. Please use a 64bit version of the program." + Environment.NewLine + "Close application?", "The system is 64bit but the running application is 32bit", MessageBoxButtons.OKCancel, MessageBoxIcon.Error) == DialogResult.OK)
@@ -89,7 +111,7 @@ namespace DllRegister
 
 
 
-            GetInfo();
+            if(viewLog) GetInfo();
             labelResult.BorderStyle = BorderStyle.None;
             labelResult.BackColor = this.BackColor;
             labelResult.Text = "";
@@ -118,9 +140,9 @@ namespace DllRegister
             #region fill combo box regasm.exe
             comboBoxNetLink.Items.Clear();
             comboBoxNetLink.Text = string.Empty;
-            Logger.Instance.AdddLog(LogType.Info, "Search in: " + framework + " for regasm.exe!", this);
+            if (viewLog) Logger.Instance.AdddLog(LogType.Info, "Search in: " + framework + " for regasm.exe!", this);
             string[] files = Directory.GetFiles(framework, "regasm.exe", SearchOption.AllDirectories);
-            Logger.Instance.AdddLog(LogType.Info, "Found " + files.Length.ToString() + " regasm.exe files.", this);
+            if (viewLog) Logger.Instance.AdddLog(LogType.Info, "Found " + files.Length.ToString() + " regasm.exe files.", this);
 
             if (files != null && files.Length > 0)
             {
@@ -146,12 +168,6 @@ namespace DllRegister
             }
             #endregion
 
-
-
-
-
-
-
             #endregion
 
             LoadDllFileItems();
@@ -165,6 +181,9 @@ namespace DllRegister
 
             blockGui = false;
         }
+
+
+
 
         private void LoadDllFileItems( )
         {
@@ -245,50 +264,51 @@ namespace DllRegister
                 lock (fct_box)
                 {
 
-                    TextStyle style = nullStyle;
-                    switch (e.Level)
-                    {
-                        case LogType.Info:
-                            style = infoStyle;
-                            break;
-                        case LogType.Debug:
-                            break;
-                        case LogType.Warn:
-                            style = warningStyle;
-                            break;
-                        case LogType.Error:
-                            style = errorStyle;
-                            break;
-                        case LogType.Off:
-                        default:
-                            break;
-                    }
-                    //some stuffs for best performance
-                    fct_box.BeginUpdate();
-                    fct_box.Selection.BeginUpdate();
-                    //remember user selection
-                    var userSelection = fct_box.Selection.Clone();
-                    //add text with predefined style
-                    fct_box.TextSource.CurrentTB = fct_box;
-                    fct_box.AppendText(e.LogMessage + Environment.NewLine, style);
-                    //restore user selection
-                    if (!userSelection.IsEmpty || userSelection.Start.iLine < fct_box.LinesCount - 2)
-                    {
-                        fct_box.Selection.Start = userSelection.Start;
-                        fct_box.Selection.End = userSelection.End;
-                    }
-                    else
-                        fct_box.GoEnd();//scroll to end of the text
+                    //TextStyle style = nullStyle;
+                    //switch (e.Level)
+                    //{
+                    //    case LogType.Info:
+                    //        style = infoStyle;
+                    //        break;
+                    //    case LogType.Debug:
+                    //        break;
+                    //    case LogType.Warn:
+                    //        style = warningStyle;
+                    //        break;
+                    //    case LogType.Error:
+                    //        style = errorStyle;
+                    //        break;
+                    //    case LogType.Off:
+                    //    default:
+                    //        break;
+                    //}
+                    ////some stuffs for best performance
+                    //fct_box.BeginUpdate();
+                    //fct_box.Selection.BeginUpdate();
+                    ////remember user selection
+                    //var userSelection = fct_box.Selection.Clone();
+                    ////add text with predefined style
+                    //fct_box.TextSource.CurrentTB = fct_box;
+                    //fct_box.AppendText(e.LogMessage + Environment.NewLine, style);
+                    fct_box.AppendText(e.LogMessage + Environment.NewLine);
+                ////restore user selection
+                //if (!userSelection.IsEmpty || userSelection.Start.iLine < fct_box.LinesCount - 2)
+                //{
+                //    fct_box.Selection.Start = userSelection.Start;
+                //    fct_box.Selection.End = userSelection.End;
+                //}
+                //else
+                //    fct_box.GoEnd();//scroll to end of the text
 
-                    fct_box.Update();
-                    fct_box.BringToFront();
-                    #region save log
-                    if (!string.IsNullOrWhiteSpace(fct_box.Text) && !string.IsNullOrWhiteSpace(DllRegister.BaseBackupPath) && System.IO.Directory.Exists(DllRegister.BaseBackupPath))
-                    {
-                        System.IO.File.WriteAllText(DllRegister.LogFilePath, fct_box.Text);
-                    }
-                    #endregion
-                    Application.DoEvents();
+                //fct_box.Update();
+                //fct_box.BringToFront();
+                #region save log
+                //if (!string.IsNullOrWhiteSpace(fct_box.Text) && !string.IsNullOrWhiteSpace(Setting.OutputPath) && System.IO.Directory.Exists(Setting.OutputPath))
+                //{
+                //    System.IO.File.WriteAllText(DllRegister.LogFilePath, fct_box.Text);
+                //}
+                #endregion
+                Application.DoEvents();
                 }
             }
         }
@@ -299,7 +319,7 @@ namespace DllRegister
         {
             if ((checkBoxInstallinGAC.Checked || !checkBoxRegistry.Checked) && !UacHelper.IsRunAsAdmin())
             {
-                MessageBox.Show("You need administrator rights to register a dll!", "Administrator ?", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You need administrator rights to register a DLL!", "Administrator ?", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -308,7 +328,7 @@ namespace DllRegister
             labelResult.BackColor = this.BackColor;
             labelResult.Text = string.Empty;
             fct_box.Text = string.Empty;
-            
+            SetToViewRegFile();
 
             Logger.Instance.AdddLog(LogType.Debug, "Start to register DLLs!", this);
 
@@ -333,7 +353,7 @@ namespace DllRegister
             if (Setting.FileItems == null || Setting.FileItems.Count == 0)
             {
                 Logger.Instance.AdddLog(LogType.Error, "Missing DLL file link ?", this);
-                MessageBox.Show("Please select dll files (add button)!", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please select DLL files (add button)!", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (comboBoxNetLink.SelectedItem == null || string.IsNullOrWhiteSpace((comboBoxNetLink.SelectedItem as NetItem).FullPath) || !System.IO.File.Exists((comboBoxNetLink.SelectedItem as NetItem).FullPath))
@@ -372,7 +392,7 @@ namespace DllRegister
         {
             if (!UacHelper.IsRunAsAdmin())
             {
-                MessageBox.Show("You need administrator rights to unregister a dll!", "Administrator ?", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You need administrator rights to unregister a DLL!", "Administrator ?", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -380,7 +400,8 @@ namespace DllRegister
             labelResult.BackColor = this.BackColor;
             labelResult.Text = string.Empty;
             fct_box.Text = string.Empty;
-           
+            SetToViewRegFile();
+
             Logger.Instance.AdddLog(LogType.Debug, "Start to unregister DLLs!", this);
             GetUiInput();
 
@@ -480,7 +501,7 @@ namespace DllRegister
                             message += "Unknown"; break;
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     message += "|Integrity level:N/A";
                 }
@@ -555,7 +576,7 @@ namespace DllRegister
             if (dialog.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.FileName))
             {
                 Setting = Settings.Load(out string error, dialog.FileName);
-                if (error == string.Empty) MainForm_Load(this, null);
+                if (error == string.Empty) SetValuesToForm(false);
                 Setting.MainOptions.OptionPath = dialog.FileName;
                 timeId = DateTime.Now.ToString("ddMMyyHHmmssfff");
             }
@@ -692,6 +713,7 @@ namespace DllRegister
             labelResult.Text = string.Empty;
             fct_box.Text = string.Empty;
             bool error = false;
+            SetToViewRegFile();
             Logger.Instance.AdddLog(LogType.Debug, "Start to find DLLs in registry!", this);
             if (Environment.Is64BitProcess)
             {
@@ -872,27 +894,31 @@ namespace DllRegister
             }
         }
 
-        private void openPathToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (FileListcomboBox.SelectedItem != null && System.IO.Directory.Exists(System.IO.Path.GetDirectoryName((FileListcomboBox.SelectedItem as FileItem).FullPath)))
             {
-                ProcessStartInfo StartInformation = new ProcessStartInfo();
-                StartInformation.FileName = System.IO.Path.GetDirectoryName((FileListcomboBox.SelectedItem as FileItem).FullPath);
+                ProcessStartInfo StartInformation = new ProcessStartInfo
+                {
+                    FileName = System.IO.Path.GetDirectoryName((FileListcomboBox.SelectedItem as FileItem).FullPath)
+                };
                 Process process = Process.Start(StartInformation);
             }
         }
-        private void textBoxOutPath_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void TextBoxOutPath_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(textBoxOutPath.Text) && System.IO.Directory.Exists(textBoxOutPath.Text))
             {
-                ProcessStartInfo StartInformation = new ProcessStartInfo();
-                StartInformation.FileName = textBoxOutPath.Text;
+                ProcessStartInfo StartInformation = new ProcessStartInfo
+                {
+                    FileName = textBoxOutPath.Text
+                };
                 Process process = Process.Start(StartInformation);
             }
         }
 
 
-        private void textBoxPName_TextChanged(object sender, EventArgs e)
+        private void TextBoxPName_TextChanged(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(textBoxPName.Text) || blockGui) return;
             blockGui = true;            
@@ -904,7 +930,7 @@ namespace DllRegister
 
         #endregion
 
-        private void comboBoxNetLink_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBoxNetLink_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (blockGui) return;
             if (FileListcomboBox.SelectedItem != null && comboBoxNetLink.SelectedItem != null)
@@ -936,7 +962,7 @@ namespace DllRegister
             }
         }
 
-        private void viewRegFileToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ViewRegFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             viewRegFileToolStripMenuItem.Checked = !viewRegFileToolStripMenuItem.Checked;
 
@@ -945,52 +971,47 @@ namespace DllRegister
                 
 
                 GetUiInput();
-                logBufferText = fct_box.Text;
-                logBuffer = fct_box.TextSource;
+                if (!DllRegister.TestSettings(Setting))
+                {
+                    Logger.Instance.AdddLog(LogType.Error, "Project or file name or no write access? ", "DllRegister", "");
+                    SetValuesToForm(false);
+                }
+
+
                 FileItem fileItem = FileListcomboBox.SelectedItem as FileItem;
 
-
-
-
-
-                if (FileListcomboBox.SelectedItem != null && !string.IsNullOrWhiteSpace(fileItem.FullPath))
+                if (FileListcomboBox.SelectedItem != null &&
+                    !string.IsNullOrWhiteSpace(fileItem.FullPath) &&
+                    !string.IsNullOrWhiteSpace(Setting.OutputPath) &&
+                    System.IO.Directory.Exists(Setting.OutputPath) 
+                    )
                 {
-                    string fileName = System.IO.Path.GetFileNameWithoutExtension(fileItem.FullPath);
 
-                    string BaseBackupPath = string.Empty;
-                    if (!string.IsNullOrWhiteSpace(Setting.OutputPath) && !Setting.OutputPath.EndsWith("\\")) Setting.OutputPath += "\\";
-
-
-
-
-                    if (string.IsNullOrWhiteSpace(Setting.ProjectName)) Setting.ProjectName = "Backup";
-
-                    System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9 -]");
-                    Setting.ProjectName = rgx.Replace(Setting.ProjectName, "");
-
-                    if (string.IsNullOrWhiteSpace(Setting.OutputPath))
+                    string path = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(fileItem.RegBuildPath) && System.IO.File.Exists(fileItem.RegBuildPath))
                     {
-                        BaseBackupPath = System.IO.Path.GetDirectoryName(fileItem.FullPath) + Setting.ProjectName + "\\" + fileName + ".reg";
+                        path = fileItem.RegBuildPath;
                     }
                     else
                     {
-                        if (!System.IO.File.Exists(Setting.OutputPath + fileName + ".reg"))
+                        path = Setting.OutputPath + System.IO.Path.GetFileNameWithoutExtension(fileItem.FullPath) + ".reg";
+                        if (string.IsNullOrWhiteSpace(path) || !System.IO.File.Exists(path))
                         {
-                            BaseBackupPath = Setting.OutputPath + Setting.ProjectName + "\\" + fileName + ".reg";
+                            path = string.Empty;
                         }
                     }
+                   
 
-
-                    
-                    
-
-                    if (!string.IsNullOrWhiteSpace(BaseBackupPath) && System.IO.File.Exists(BaseBackupPath))
+                    if (!string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
                     {
                         try
                         {
-                            var lines = File.ReadAllText(BaseBackupPath);
+                            var lines = File.ReadAllText(path);
                             if (!string.IsNullOrWhiteSpace(lines))
                             {
+                                logBufferText = fct_box.Text;
+                                //logBuffer = fct_box.TextSource;
+
                                 fct_box.Language = Language.CSharp;
                                 fct_box.Text = lines;
                                 viewRegFileToolStripMenuItem.Text = "View Log file";
@@ -1008,11 +1029,131 @@ namespace DllRegister
             }
             else
             {
-                viewRegFileToolStripMenuItem.Text = "View Reg. file";                
-                fct_box.TextSource = logBuffer;
+                SetToViewRegFile();
+            }
+        }
+
+        private void SetToViewRegFile()
+        {
+            if (logBufferText != null)
+            {
+                viewRegFileToolStripMenuItem.Text = "View Reg. file";
+                //fct_box.TextSource = logBuffer;
                 fct_box.Text = logBufferText;
                 fct_box.Language = Language.Lua;
+                logBufferText = null;
+            }   
+        }
+
+        private void CSharpSyntaxHighlight(TextChangedEventArgs e)
+        {
+            //[HKEY_CLASSES_ROOT\CLSID\{403E7AD7-2281-4651-95DD-2775EAEF4920}\InprocServer32\2.0.0.5]
+
+
+
+            fct_box.LeftBracket = '(';
+            fct_box.RightBracket = ')';
+            fct_box.LeftBracket2 = '\x0';
+            fct_box.RightBracket2 = '\x0';
+            //clear style of changed range
+            e.ChangedRange.ClearStyle(BlueStyle, BoldStyle, GrayStyle, MagentaStyle, GreenStyle, BrownStyle);
+
+            //string highlighting
+            e.ChangedRange.SetStyle(BrownStyle, @"""""|@""""|''|@"".*?""|(?<!@)(?<range>"".*?[^\\]"")|'.*?[^\\]'");
+            //comment highlighting
+            e.ChangedRange.SetStyle(GreenStyle, @"//.*$", RegexOptions.Multiline);
+            e.ChangedRange.SetStyle(GreenStyle, @"(/\*.*?\*/)|(/\*.*)", RegexOptions.Singleline);
+            e.ChangedRange.SetStyle(GreenStyle, @"(/\*.*?\*/)|(.*\*/)", RegexOptions.Singleline | RegexOptions.RightToLeft);
+            //number highlighting
+            e.ChangedRange.SetStyle(MagentaStyle, @"\b\d+[\.]?\d*([eE]\-?\d+)?[lLdDfF]?\b|\b0x[a-fA-F\d]+\b");
+            //attribute highlighting
+            e.ChangedRange.SetStyle(GrayStyle, @"^\s*(?<range>\[.+?\])\s*$", RegexOptions.Multiline);
+            //class name highlighting
+            e.ChangedRange.SetStyle(BoldStyle, @"\b(Class|Assembly|RuntimeVersion|CodeBase|file)\s+(?<range>\w+?)\b");
+            //keyword highlighting
+            e.ChangedRange.SetStyle(errorStyle, @"\b(DllRegister|ERROR|error|Not fond|Version)\b|#region\b|#endregion\b");
+
+            //keyword highlighting
+            e.ChangedRange.SetStyle(BlueStyle, @"\b(HKEY_CLASSES_ROOT|CLSID|InprocServer32|CLASSES_ROOT|Wow6432Node|Keys|Key|dll|DLL)\b|#region\b|#endregion\b");
+
+
+
+            //clear folding markers
+            e.ChangedRange.ClearFoldingMarkers();
+
+            //set folding markers
+            e.ChangedRange.SetFoldingMarkers("{", "}");//allow to collapse brackets block
+            e.ChangedRange.SetFoldingMarkers(@"#region\b", @"#endregion\b");//allow to collapse #region blocks
+            e.ChangedRange.SetFoldingMarkers(@"/\*", @"\*/");//allow to collapse comment block
+        }
+
+        private void fct_box_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (blockGui) return;
+            CSharpSyntaxHighlight(e);//custom highlighting
+        }
+
+        private void fct_box_AutoIndentNeeded(object sender, AutoIndentEventArgs args)
+        {
+            //block {}
+            if (Regex.IsMatch(args.LineText, @"^[^""']*\{.*\}[^""']*$"))
+                return;
+            //start of block {}
+            if (Regex.IsMatch(args.LineText, @"^[^""']*\{"))
+            {
+                args.ShiftNextLines = args.TabLength;
+                return;
             }
+            //end of block {}
+            if (Regex.IsMatch(args.LineText, @"}[^""']*$"))
+            {
+                args.Shift = -args.TabLength;
+                args.ShiftNextLines = -args.TabLength;
+                return;
+            }
+            //label
+            if (Regex.IsMatch(args.LineText, @"^\s*\w+\s*:\s*($|//)") &&
+                !Regex.IsMatch(args.LineText, @"^\s*default\s*:"))
+            {
+                args.Shift = -args.TabLength;
+                return;
+            }
+            //some statements: case, default
+            if (Regex.IsMatch(args.LineText, @"^\s*(case|default)\b.*:\s*($|//)"))
+            {
+                args.Shift = -args.TabLength / 2;
+                return;
+            }
+            //is unclosed operator in previous line ?
+            if (Regex.IsMatch(args.PrevLineText, @"^\s*(if|for|foreach|while|[\}\s]*else)\b[^{]*$"))
+                if (!Regex.IsMatch(args.PrevLineText, @"(;\s*$)|(;\s*//)"))//operator is unclosed
+                {
+                    args.Shift = args.TabLength;
+                    return;
+                }
+        }
+
+        private void fct_box_CustomAction(object sender, CustomActionEventArgs e)
+        {
+
+        }
+
+        private void fct_box_SelectionChangedDelayed(object sender, EventArgs e)
+        {
+            fct_box.VisibleRange.ClearStyle(SameWordsStyle);
+            if (!fct_box.Selection.IsEmpty)
+                return;//user selected diapason
+
+            //get fragment around caret
+            var fragment = fct_box.Selection.GetFragment(@"\w");
+            string text = fragment.Text;
+            if (text.Length == 0)
+                return;
+            //highlight same words
+            var ranges = fct_box.VisibleRange.GetRanges("\\b" + text + "\\b").ToArray();
+            if (ranges.Length > 1)
+                foreach (var r in ranges)
+                    r.SetStyle(SameWordsStyle);
         }
     }
 }

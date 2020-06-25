@@ -145,7 +145,7 @@ namespace DllRegister
             this.textBoxPName.TabIndex = 20;
             this.textBoxPName.TabStop = false;
             this.toolTip1.SetToolTip(this.textBoxPName, "Output path to save the registration/ log files");
-            this.textBoxPName.TextChanged += new System.EventHandler(this.textBoxPName_TextChanged);
+            this.textBoxPName.TextChanged += new System.EventHandler(this.TextBoxPName_TextChanged);
             // 
             // button1
             // 
@@ -182,7 +182,7 @@ namespace DllRegister
             this.textBoxOutPath.TabIndex = 17;
             this.textBoxOutPath.TabStop = false;
             this.toolTip1.SetToolTip(this.textBoxOutPath, "Output path to save the registration/ log files");
-            this.textBoxOutPath.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.textBoxOutPath_MouseDoubleClick);
+            this.textBoxOutPath.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TextBoxOutPath_MouseDoubleClick);
             // 
             // buttonTest
             // 
@@ -278,7 +278,7 @@ namespace DllRegister
             this.comboBoxNetLink.TabIndex = 5;
             this.comboBoxNetLink.TabStop = false;
             this.comboBoxNetLink.Text = "empty link";
-            this.comboBoxNetLink.SelectedIndexChanged += new System.EventHandler(this.comboBoxNetLink_SelectedIndexChanged);
+            this.comboBoxNetLink.SelectedIndexChanged += new System.EventHandler(this.ComboBoxNetLink_SelectedIndexChanged);
             this.comboBoxNetLink.MouseHover += new System.EventHandler(this.ComboBoxNetLink_MouseHover);
             // 
             // labelResult
@@ -416,7 +416,7 @@ namespace DllRegister
             this.viewRegFileToolStripMenuItem.Size = new System.Drawing.Size(110, 24);
             this.viewRegFileToolStripMenuItem.Text = "View Reg File";
             this.viewRegFileToolStripMenuItem.ToolTipText = "View the registry build file";
-            this.viewRegFileToolStripMenuItem.Click += new System.EventHandler(this.viewRegFileToolStripMenuItem_Click);
+            this.viewRegFileToolStripMenuItem.Click += new System.EventHandler(this.ViewRegFileToolStripMenuItem_Click);
             // 
             // FileListcomboBox
             // 
@@ -483,7 +483,7 @@ namespace DllRegister
             this.openPathToolStripMenuItem.Name = "openPathToolStripMenuItem";
             this.openPathToolStripMenuItem.Size = new System.Drawing.Size(152, 24);
             this.openPathToolStripMenuItem.Text = "Open path";
-            this.openPathToolStripMenuItem.Click += new System.EventHandler(this.openPathToolStripMenuItem_Click);
+            this.openPathToolStripMenuItem.Click += new System.EventHandler(this.OpenPathToolStripMenuItem_Click);
             // 
             // fct_box
             // 
@@ -507,7 +507,7 @@ namespace DllRegister
             this.fct_box.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.fct_box.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
             this.fct_box.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.fct_box.Font = new System.Drawing.Font("Courier New", 9.75F);
+            this.fct_box.ImeMode = System.Windows.Forms.ImeMode.Off;
             this.fct_box.IsReplaceMode = false;
             this.fct_box.Location = new System.Drawing.Point(0, 0);
             this.fct_box.Name = "fct_box";
@@ -517,6 +517,10 @@ namespace DllRegister
             this.fct_box.Size = new System.Drawing.Size(739, 275);
             this.fct_box.TabIndex = 18;
             this.fct_box.Zoom = 100;
+            this.fct_box.TextChanged += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.fct_box_TextChanged);
+            this.fct_box.SelectionChangedDelayed += new System.EventHandler(this.fct_box_SelectionChangedDelayed);
+            this.fct_box.AutoIndentNeeded += new System.EventHandler<FastColoredTextBoxNS.AutoIndentEventArgs>(this.fct_box_AutoIndentNeeded);
+            this.fct_box.CustomAction += new System.EventHandler<FastColoredTextBoxNS.CustomActionEventArgs>(this.fct_box_CustomAction);
             // 
             // toolTip1
             // 

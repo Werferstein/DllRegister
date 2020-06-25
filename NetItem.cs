@@ -147,6 +147,8 @@ namespace DllRegister
         [XmlAttribute]
         public string RegExe { get; set; }
         [XmlAttribute]
+        public string RegBuildPath { get; set; }
+        [XmlAttribute]
         public string FullPath { get; set; }          
         public override string ToString()
         {
